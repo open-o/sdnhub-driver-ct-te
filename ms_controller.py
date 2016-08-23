@@ -4,6 +4,11 @@ from sqlite3 import Time
 
 __author__ = 'Siag'
 
+from jsonrpc import *
+from microsrvurl import *
+from tornado_swagger import swagger
+import os
+import os.path
 import tornado.httpserver
 import tornado.ioloop
 import tornado.options
@@ -20,14 +25,21 @@ import copy
 import httplib
 import urlparse
 
-microsrv_te_lsp_man_url = 'http://10.9.63.208:7799/lsp/'
-microsrv_te_flow_man_url = 'http://10.9.63.208:7799/sche/'
-# microsrv_te_lsp_man_url = 'http://10.9.63.88:32772'
-# microsrv_te_flow_man_url = 'http://10.9.63.88:32773'
+#swagger#
+DEFAULT_REPRESENTATION = "application/json"
+HTTP_BAD_REQUEST = 400
+HTTP_FORBIDDEN = 403
+HTTP_NOT_FOUND = 404
+openapi_swagger_prefix_uri = r'/openoapi/sdno-driver-ct-te/v1/'
+swagger.docs()
+
+microsrv_te_lsp_man_url = te_lsp_man_url #'http://10.9.63.140:32772/'
+microsrv_te_flow_man_url = te_flow_sched_url #'http://10.9.63.140:32773/'
 microsrv_status_check_times = 30
 microsrv_status_check_duration = 5
-microsrv_equip_map = {"PE14Z": {"vendor": "ZTE", "uid": "PE14Z", "pos": "Old village of Gao", "community": "roastedchikenPE14Z", "ip_str": "14.14.14.14", "y": 48.9, "x": 113.8, "model": "aladin", "name": "PE14Z"}, "PE21A": {"vendor": "ALU", "uid": "PE21A", "pos": "Old village of Gao", "community": "roastedchikenPE21A", "ip_str": "21.21.21.21", "y": 48.9, "x": 113.8, "model": "aladin", "name": "PE21A"}, "PE12J": {"vendor": "JUNIPER", "uid": "PE12J", "pos": "Old village of Gao", "community": "roastedchikenPE12J", "ip_str": "12.12.12.12", "y": 48.9, "x": 113.8, "model": "aladin", "name": "PE12J"}, "R1Z": {"vendor": "ZTE", "uid": "R1Z", "pos": "Old village of Gao", "community": "roastedchikenR1Z", "ip_str": "1.1.1.1", "y": 48.9, "x": 113.8, "model": "aladin", "name": "R1Z"}, "PE13C": {"vendor": "CISCO", "uid": "PE13C", "pos": "Old village of Gao", "community": "roastedchikenPE13C", "ip_str": "13.13.13.13", "y": 48.9, "x": 113.8, "model": "aladin", "name": "PE13C"}, "PE22J": {"vendor": "JUNIPER", "uid": "PE22J", "pos": "Old village of Gao", "community": "roastedchikenPE22J", "ip_str": "22.22.22.22", "y": 48.9, "x": 113.8, "model": "aladin", "name": "PE22J"}, "PE24Z": {"vendor": "ZTE", "uid": "PE24Z", "pos": "Old village of Gao", "community": "roastedchikenPE24Z", "ip_str": "24.24.24.24", "y": 48.9, "x": 113.8, "model": "aladin", "name": "PE24Z"}, "PE11A": {"vendor": "ALU", "uid": "PE11A", "pos": "Old village of Gao", "community": "roastedchikenPE11A", "ip_str": "11.11.11.11", "y": 48.9, "x": 113.8, "model": "aladin", "name": "PE11A"}, "R3Z": {"vendor": "ZTE", "uid": "R3Z", "pos": "Old village of Gao", "community": "roastedchikenR3Z", "ip_str": "3.3.3.3", "y": 48.9, "x": 113.8, "model": "aladin", "name": "R3Z"}, "R6Z": {"vendor": "ZTE", "uid": "R6Z", "pos": "Old village of Gao", "community": "roastedchikenR6Z", "ip_str": "6.6.6.6", "y": 48.9, "x": 113.8, "model": "aladin", "name": "R6Z"}, "PE23C": {"vendor": "CISCO", "uid": "PE23C", "pos": "Old village of Gao", "community": "roastedchikenPE23C", "ip_str": "23.23.23.23", "y": 48.9, "x": 113.8, "model": "aladin", "name": "PE23C"}, "R4Z": {"vendor": "ZTE", "uid": "R4Z", "pos": "Old village of Gao", "community": "roastedchikenR4Z", "ip_str": "4.4.4.4", "y": 48.9, "x": 113.8, "model": "aladin", "name": "R4Z"}}
-microsrv_equip_loopback_uid_map = {"13.13.13.13": "PE13C", "12.12.12.12": "PE12J", "24.24.24.24": "PE24Z", "22.22.22.22": "PE22J", "21.21.21.21": "PE21A", "4.4.4.4": "R4Z", "6.6.6.6": "R6Z", "11.11.11.11": "PE11A", "1.1.1.1": "R1Z", "23.23.23.23": "PE23C", "14.14.14.14": "PE14Z", "3.3.3.3": "R3Z"}
+microsrv_equip_map = {"11": {"vendor": "ZTE", "uid": "11", "community": "ctbri", "x": 220.0, "y": 380.0, "ip_str": "4.4.4.4", "ports": [{"capacity": 1000, "uid": "38", "if_name": "xgei-0/0/0/7", "mac": "00-00-0A-00-72-04", "ip_str": "10.0.114.4", "type": 0, "if_index": 28}, {"capacity": 1000, "uid": "39", "if_name": "xgei-0/0/0/4", "mac": "00-00-0A-00-7C-04", "ip_str": "10.0.124.4", "type": 0, "if_index": 29}, {"capacity": 1000, "uid": "40", "if_name": "xgei-0/0/0/6", "mac": "00-00-0A-00-86-04", "ip_str": "10.0.134.4", "type": 0, "if_index": 30}, {"capacity": 1000, "uid": "41", "if_name": "xgei-0/0/0/3", "mac": "00-00-0A-00-0E-04", "ip_str": "10.0.14.4", "type": 0, "if_index": 31}, {"capacity": 1000, "uid": "42", "if_name": "xgei-0/0/0/2", "mac": "00-00-0A-00-22-04", "ip_str": "10.0.34.4", "type": 0, "if_index": 32}, {"capacity": 1000, "uid": "43", "if_name": "xgei-0/0/0/1", "mac": "00-00-0A-00-2E-04", "ip_str": "10.0.46.4", "type": 0, "if_index": 33}], "name": "R4"}, "10": {"vendor": "ZTE", "uid": "10", "community": "ctbri", "x": 335.0, "y": 225.0, "ip_str": "3.3.3.3", "ports": [{"capacity": 1000, "uid": "32", "if_name": "xgei-0/0/0/1", "mac": "00-00-0A-00-0D-03", "ip_str": "10.0.13.3", "type": 0, "if_index": 22}, {"capacity": 1000, "uid": "33", "if_name": "xgei-0/0/0/2", "mac": "00-00-0A-00-22-03", "ip_str": "10.0.34.3", "type": 0, "if_index": 23}, {"capacity": 1000, "uid": "34", "if_name": "xgei-0/0/0/3", "mac": "00-00-0A-00-24-03", "ip_str": "10.0.36.3", "type": 0, "if_index": 24}, {"capacity": 1000, "uid": "35", "if_name": "xgei-0/0/0/7", "mac": "00-00-0A-00-D5-03", "ip_str": "10.0.213.3", "type": 0, "if_index": 25}, {"capacity": 1000, "uid": "36", "if_name": "xgei-0/0/0/4", "mac": "00-00-0A-00-DF-03", "ip_str": "10.0.223.3", "type": 0, "if_index": 26}, {"capacity": 1000, "uid": "37", "if_name": "xgei-0/0/0/6", "mac": "00-00-0A-00-E9-03", "ip_str": "10.0.233.3", "type": 0, "if_index": 27}], "name": "R3"}, "12": {"vendor": "ZTE", "uid": "12", "community": "ctbri", "x": 335.0, "y": 380.0, "ip_str": "6.6.6.6", "ports": [{"capacity": 1000, "uid": "44", "if_name": "xgei-0/0/0/1", "mac": "00-00-0A-00-2E-06", "ip_str": "10.0.46.6", "type": 0, "if_index": 34}, {"capacity": 1000, "uid": "45", "if_name": "xgei-0/0/0/2", "mac": "00-00-0A-00-10-06", "ip_str": "10.0.16.6", "type": 0, "if_index": 35}, {"capacity": 1000, "uid": "46", "if_name": "xgei-0/0/0/3", "mac": "00-00-0A-00-24-06", "ip_str": "10.0.36.6", "type": 0, "if_index": 36}, {"capacity": 1000, "uid": "47", "if_name": "xgei-0/0/0/7", "mac": "00-00-0A-00-D8-06", "ip_str": "10.0.216.6", "type": 0, "if_index": 37}, {"capacity": 1000, "uid": "48", "if_name": "xgei-0/0/0/4", "mac": "00-00-0A-00-E2-06", "ip_str": "10.0.226.6", "type": 0, "if_index": 38}, {"capacity": 1000, "uid": "49", "if_name": "xgei-0/0/0/6", "mac": "00-00-0A-00-EC-06", "ip_str": "10.0.236.6", "type": 0, "if_index": 39}], "name": "R6"}, "1": {"vendor": "ZTE", "uid": "1", "community": "ctbri", "x": 0.0, "y": 150.0, "ip_str": "14.14.14.14", "ports": [{"capacity": 1000, "uid": "1", "if_name": "xgei-0/0/0/3", "mac": "00-00-0A-00-8C-0E", "ip_str": "10.0.140.14", "type": 0, "if_index": 0}], "name": "PE14_ZTE"}, "3": {"vendor": "JUNIPPER", "uid": "3", "community": "ctbri", "x": 115.0, "y": 305.0, "ip_str": "12.12.12.12", "ports": [{"capacity": 1000, "uid": "14", "if_name": "pe12_121", "mac": "00-00-0A-00-79-0C", "ip_str": "10.0.121.12", "type": 0, "if_index": 4}, {"capacity": 1000, "uid": "15", "if_name": "pe12_124", "mac": "00-00-0A-00-7C-0C", "ip_str": "10.0.124.12", "type": 0, "if_index": 5}], "name": "PE12_JUNIPPER"}, "2": {"vendor": "ALU", "uid": "2", "community": "ctbri", "x": 115.0, "y": 150.0, "ip_str": "11.11.11.11", "ports": [{"capacity": 1000, "uid": "2", "if_name": "ALU   1/1/4", "mac": "00-00-0A-00-8C-0B", "ip_str": "10.0.140.11", "type": 0, "if_index": 1}, {"capacity": 1000, "uid": "3", "if_name": "ALU   1/1/1", "mac": "00-00-0A-00-6F-0B", "ip_str": "10.0.111.11", "type": 0, "if_index": 2}, {"capacity": 1000, "uid": "13", "if_name": "ALU   1/1/2", "mac": "00-00-0A-00-72-0B", "ip_str": "10.0.114.11", "type": 0, "if_index": 3}], "name": "PE11_ALU"}, "5": {"vendor": "ZTE", "uid": "5", "community": "ctbri", "x": 530.0, "y": 150.0, "ip_str": "24.24.24.24", "ports": [{"capacity": 1000, "uid": "18", "if_name": "xgei-0/0/0/3", "mac": "00-00-0A-00-F0-18", "ip_str": "10.0.240.24", "type": 0, "if_index": 8}], "name": "PE24_ZTE"}, "4": {"vendor": "CISCO", "uid": "4", "community": "ctbri", "x": 115.0, "y": 460.0, "ip_str": "13.13.13.13", "ports": [{"capacity": 1000, "uid": "16", "if_name": "ten0/0/2/0", "mac": "00-00-0A-00-83-0D", "ip_str": "10.0.131.13", "type": 0, "if_index": 6}, {"capacity": 1000, "uid": "17", "if_name": "ten0/0/2/1", "mac": "00-00-0A-00-86-0D", "ip_str": "10.0.134.13", "type": 0, "if_index": 7}], "name": "PE13_CISCO"}, "7": {"vendor": "JUNIPPER", "uid": "7", "community": "ctbri", "x": 430.0, "y": 305.0, "ip_str": "22.22.22.22", "ports": [{"capacity": 1000, "uid": "22", "if_name": "pe22_223", "mac": "00-00-0A-00-DF-16", "ip_str": "10.0.223.22", "type": 0, "if_index": 12}, {"capacity": 1000, "uid": "23", "if_name": "pe22_226", "mac": "00-00-0A-00-E2-16", "ip_str": "10.0.226.22", "type": 0, "if_index": 13}], "name": "PE22_JUNIPPER"}, "6": {"vendor": "ALU", "uid": "6", "community": "ctbri", "x": 430.0, "y": 150.0, "ip_str": "21.21.21.21", "ports": [{"capacity": 1000, "uid": "19", "if_name": "ALU   1/1/3", "mac": "00-00-0A-00-F0-15", "ip_str": "10.0.240.21", "type": 0, "if_index": 9}, {"capacity": 1000, "uid": "20", "if_name": "ALU   1/1/1", "mac": "00-00-0A-00-D5-15", "ip_str": "10.0.213.21", "type": 0, "if_index": 10}, {"capacity": 1000, "uid": "21", "if_name": "ALU   1/1/2", "mac": "00-00-0A-00-D8-15", "ip_str": "10.0.216.21", "type": 0, "if_index": 11}], "name": "PE21_ALU"}, "9": {"vendor": "ZTE", "uid": "9", "community": "ctbri", "x": 220.0, "y": 225.0, "ip_str": "1.1.1.1", "ports": [{"capacity": 1000, "uid": "26", "if_name": "xgei-0/0/0/7", "mac": "00-00-0A-00-6F-01", "ip_str": "10.0.111.1", "type": 0, "if_index": 16}, {"capacity": 1000, "uid": "27", "if_name": "xgei-0/0/0/4", "mac": "00-00-0A-00-79-01", "ip_str": "10.0.121.1", "type": 0, "if_index": 17}, {"capacity": 1000, "uid": "28", "if_name": "xgei-0/0/0/6", "mac": "00-00-0A-00-83-01", "ip_str": "10.0.131.1", "type": 0, "if_index": 18}, {"capacity": 1000, "uid": "29", "if_name": "xgei-0/0/0/1", "mac": "00-00-0A-00-0D-01", "ip_str": "10.0.13.1", "type": 0, "if_index": 19}, {"capacity": 1000, "uid": "30", "if_name": "xgei-0/0/0/3", "mac": "00-00-0A-00-0E-01", "ip_str": "10.0.14.1", "type": 0, "if_index": 20}, {"capacity": 1000, "uid": "31", "if_name": "xgei-0/0/0/2", "mac": "00-00-0A-00-10-01", "ip_str": "10.0.16.1", "type": 0, "if_index": 21}], "name": "R1"}, "8": {"vendor": "CISCO", "uid": "8", "community": "ctbri", "x": 430.0, "y": 460.0, "ip_str": "23.23.23.23", "ports": [{"capacity": 1000, "uid": "24", "if_name": "ten0/0/2/0", "mac": "00-00-0A-00-E9-17", "ip_str": "10.0.233.23", "type": 0, "if_index": 14}, {"capacity": 1000, "uid": "25", "if_name": "ten0/0/2/1", "mac": "00-00-0A-00-EC-17", "ip_str": "10.0.236.23", "type": 0, "if_index": 15}], "name": "PE"}}
+
+microsrv_equip_loopback_uid_map = {"13.13.13.13": "4", "12.12.12.12": "3", "11.11.11.11": "2", "22.22.22.22": "7", "4.4.4.4": "11", "6.6.6.6": "12", "24.24.24.24": "5", "3.3.3.3": "10", "21.21.21.21": "6", "1.1.1.1": "9", "14.14.14.14": "1", "23.23.23.23": "8"}
 # Not Scheduled(-1), scheduling(0), scheduled(1), De-scheduling(2)
 microsrv_flow_status_map = {"active":1, "no_scheduled":-1}
 microsrv_flow_template = {"flow_src": "", "flow_dst": "", "flow_uid": "","status":1, "user_data": {}}
@@ -35,17 +47,14 @@ microsrv_flow_template = {"flow_src": "", "flow_dst": "", "flow_uid": "","status
 microsrv_lsp_status_map = {"created":0, "up":1, "down":-1, "missing":-2, "removed":2, "deleted":3}
 microsrv_lsp_template = {"uid": "lsp_0", "from_router_name": "", "to_router_name": "", "bandwidth": "", "to_router_uid": "", "from_router_uid": "", "name": "", "hop_list":[], "path":[], "status":0, "user_data":{}}
 #juniper
-microsrv_juniper_controller_host = "https://219.141.189.67:8443"
 microsrv_juniper_controller_url = "/NorthStar/API/v1/tenant/1/topology/1/te-lsps/"
 microsrv_juniper_controller_token_url = "/oauth2/token/"
 microsrv_juniper_headers = {'Authorization': 'Bearer 5qY8ONtB7QTUte0fizDi8Yfe89MPZaw3FJhjYTSnwOQ=', 'Content-Type': 'application/json', 'Cache-Control': 'no-cache'}
 
 #zte
-microsrv_zte_controller_host = "http://219.141.189.70:8181"
 microsrv_zte_controller_url = "/restconf/operations/"
 microsrv_zte_headers = {'Authorization': 'Basic YWRtaW46YWRtaW4=', 'Content-Type': 'application/yang.data+json', 'Cache-Control': 'no-cache'}
 #alu
-microsrv_alu_controller_host = "http://219.141.189.68"
 microsrv_alu_controller_url = "/sdn/"
 microsrv_alu_headers = {'Authorization': 'Basic dGVzdDp0ZXN0'}
 microsrv_alu_nodename_maps = {"11.11.11.11":"1","12.12.12.12":"2","13.13.13.13":"3","1.1.1.1":"4","3.3.3.3":"5","4.4.4.4":"6","6.6.6.6":"7","21.21.21.21":"8","22.22.22.22":"9","23.23.23.23":"10","14.14.14.14":"11","24.24.24.24":"12"}
@@ -1073,6 +1082,10 @@ class alu_controller(base_controller):
     def form_get_flow_request(self, req):
         if ('uid' in req['args']):
             self.url += microsrv_alu_nodename_maps[req['args']['uid']]
+        if('user_data' in req['args']):
+            if ('from_router_uid' in req['args']['user_data']):
+                self.url += microsrv_alu_nodename_maps[microsrv_equip_map[req['args']['user_data']['from_router_uid']]['ip_str']]
+                pass
         return None
         pass
 
@@ -1240,8 +1253,8 @@ class alu_controller(base_controller):
             if ('flow' in resp_body and resp_body['flow'].__len__() > 0):
                 for flow_item in resp_body['flow']:
                     if('name' in flow_item):
-                         check_req['user_data']['flow_id'] = 'flow_' + req['args']['user_data']['lsp_name']
-                         check_req['user_data']['flow_name'] = flow_item['name']
+                         check_req['args']['user_data']['flow_id'] = 'flow_' + req['args']['user_data']['lsp_name']
+                         check_req['args']['user_data']['flow_name'] = flow_item['name']
                     tornado.ioloop.IOLoop.instance().add_timeout(datetime.timedelta(seconds=microsrv_status_check_duration), ms_controller_add_flow_status_check, 0, check_req, resp)
         else:
             result = {}
@@ -1276,24 +1289,344 @@ class alu_controller(base_controller):
         return {} #resp.body
         pass
 
+@tornado.gen.coroutine
+def ms_controller_add_lsp_status_check(times, req, resp):
+    times += 1
+    # vendor checker,
+    controller_vendor_map = {'JUNIPER' : juniper_controller,
+                        'CISCO': cisco_controller,
+                       'ZTE': zte_controller,
+                       'ALU' :alu_controller}
+    vendor_name = 'ALU'
+    if('from_router_uid' in req['args']):
+        vendor_name = microsrv_equip_map[req['args']['from_router_uid']]['vendor']
+        pass
+    elif('user_data' in req['args']):
+        vendor_name = microsrv_equip_map[req['args']['user_data']['from_router_uid']]['vendor']
+        pass
+    print('xxx:' + vendor_name)
+    vendor_ctrler = controller_vendor_map[vendor_name]()
+    vendor_ctrler.form_url(req)
+    vendor_ctrler.form_method(req)
+    vendor_ctrler.form_request(req)
+    vendor_result = yield vendor_ctrler.do_query(req, None, None)
+    print(vendor_result)
 
-class controller_handler(tornado.web.RequestHandler):
+    if (vendor_result != None and 'lsps' in vendor_result and  vendor_result['lsps'].__len__() > 0):
+        for lsp_item in vendor_result['lsps']:
+            # if status is up or down or missing,return to callback,
+            # finish this status check thread
+            # elif times == 30, return current status
+            if(lsp_item['status'] == microsrv_lsp_status_map['up'] or lsp_item['status'] == microsrv_lsp_status_map['missing'] or
+                lsp_item['status'] == microsrv_lsp_status_map['down'] or times == microsrv_status_check_times):
+                #return to callback
+                print('return to callback')
+                request_data = {'request':req['args']['callback'], 'ts':req['ts'], 'trans_id':req['trans_id'], 'args':{}}
+                if ('uid' in req['args']):
+                    lsp_item['uid'] = req['args']['uid']
+                request_data['args'] = lsp_item
+                req_url = microsrv_te_lsp_man_url
+                if (req['args']['callback'].startswith('http')):
+                    req_url = req['args']['callback']
+                resp = yield vendor_ctrler.do_pure_query(req_url,'POST',json.dumps(request_data))
+                pass
+            # else continue this status check loop
+            else:
+                tornado.ioloop.IOLoop.instance().add_timeout(datetime.timedelta(seconds=microsrv_status_check_duration), ms_controller_add_lsp_status_check, times, req, resp)
+                pass
+    else:
+        #return to callback
+        print('return to callback')
+        lsp_item = dict.copy(microsrv_lsp_template)
+        lsp_item['status'] = microsrv_lsp_status_map['created']
+        request_data = {'request':req['args']['callback'], 'ts':req['ts'], 'trans_id':req['trans_id'], 'args':{}}
+        if ('uid' in req['args']):
+            lsp_item['uid'] = req['args']['uid']
+        request_data['args'] = lsp_item
+        req_url = microsrv_te_lsp_man_url
+        if (req['args']['callback'].startswith('http')):
+            req_url = req['args']['callback']
+            resp = yield vendor_ctrler.do_pure_query(req_url,'POST',json.dumps(request_data['args']))
+        else:
+            resp = yield vendor_ctrler.do_pure_query(req_url,'POST',json.dumps(request_data))
+        pass
+
+    pass
+
+@tornado.gen.coroutine
+def ms_controller_del_lsp_status_check(times, req, resp):
+    times += 1
+    # vendor checker,
+    controller_vendor_map = {'JUNIPER' : juniper_controller,
+                        'CISCO': cisco_controller,
+                       'ZTE': zte_controller,
+                       'ALU' :alu_controller}
+    vendor_name = 'ALU'
+    if('from_router_uid' in req['args']):
+        vendor_name = microsrv_equip_map[req['args']['from_router_uid']]['vendor']
+        pass
+    elif('user_data' in req['args']):
+        vendor_name = microsrv_equip_map[req['args']['user_data']['from_router_uid']]['vendor']
+        pass
+    print('xxx:' + vendor_name)
+    vendor_ctrler = controller_vendor_map[vendor_name]()
+    vendor_ctrler.form_url(req)
+    vendor_ctrler.form_method(req)
+    vendor_ctrler.form_request(req)
+    vendor_result = yield vendor_ctrler.do_query(req, None, None)
+    print(vendor_result)
+
+    if (vendor_result != None and 'lsps' in vendor_result and  vendor_result['lsps'].__len__() > 0):
+        for lsp_item in vendor_result['lsps']:
+            # if status is up or down,return to callback,
+            # finish this status check thread
+            # elif times == 30, return current status
+            if(lsp_item['status'] == microsrv_lsp_status_map['removed'] and times != microsrv_status_check_times):
+                tornado.ioloop.IOLoop.instance().add_timeout(datetime.timedelta(seconds=microsrv_status_check_duration), ms_controller_del_lsp_status_check, times, req, resp)
+                pass
+            # else continue this status check loop
+            else:
+                #return to callback
+                print('return to callback')
+                request_data = {'request':req['args']['callback'], 'ts':req['ts'], 'trans_id':req['trans_id'], 'args':{}}
+                if ('uid' in req['args']):
+                    lsp_item['uid'] = req['args']['uid']
+                request_data['args'] = lsp_item
+                req_url = microsrv_te_lsp_man_url
+                if (req['args']['callback'].startswith('http')):
+                    req_url = req['args']['callback']
+                resp = yield vendor_ctrler.do_pure_query(req_url,'POST',json.dumps(request_data))
+                pass
+    else:
+        #return to callback, tell lsp delete finished
+        print('return to callback')
+        lsp_item = dict.copy(microsrv_lsp_template)
+        lsp_item['status'] = microsrv_lsp_status_map['deleted']
+        request_data = {'request':req['args']['callback'], 'ts':req['ts'], 'trans_id':req['trans_id'], 'args':{}}
+        if ('uid' in req['args']):
+            lsp_item['uid'] = req['args']['uid']
+        request_data['args'] = lsp_item
+        req_url = microsrv_te_lsp_man_url
+        if (req['args']['callback'].startswith('http')):
+            req_url = req['args']['callback']
+            resp = yield vendor_ctrler.do_pure_query(req_url,'POST',json.dumps(request_data['args']))
+        else:
+            resp = yield vendor_ctrler.do_pure_query(req_url,'POST',json.dumps(request_data))
+        pass
+
+    pass
+
+@tornado.gen.coroutine
+def ms_controller_add_flow_status_check(times, req, resp):
+    times += 1
+    # vendor checker,
+
+    controller_vendor_map = {'JUNIPER' : juniper_controller,
+                        'CISCO': cisco_controller,
+                       'ZTE': zte_controller,
+                       'ALU' :alu_controller}
+    vendor_name = 'ALU'
+    if('from_router_uid' in req['args']):
+        vendor_name = microsrv_equip_map[req['args']['from_router_uid']]['vendor']
+        pass
+    elif('user_data' in req['args']):
+        vendor_name = microsrv_equip_map[req['args']['user_data']['from_router_uid']]['vendor']
+        pass
+    print('xxx:' + vendor_name)
+    vendor_ctrler = controller_vendor_map[vendor_name]()
     '''
-    Main query handler of ms_controller.
+    vendor_ctrler.form_url(req)
+    vendor_ctrler.form_method(req)
+    vendor_ctrler.form_request(req)
+    vendor_result = yield vendor_ctrler.do_query(req, None, None)
+    print(vendor_result)
+
+    if (vendor_result != None and 'lsps' in vendor_result and  vendor_result['lsps'].__len__() > 0):
+        for lsp_item in vendor_result['lsps']:
+            # if status is up or down,return to callback,
+            # finish this status check thread
+            # elif times == 30, return current status
+            if(lsp_item['status'] == microsrv_lsp_status_map['up'] or
+                lsp_item['status'] == microsrv_lsp_status_map['down'] or times == microsrv_status_check_times):
+                #return to callback
+                print('return to callback')
+                request_data = {'request':req['args']['callback'], 'ts':req['ts'], 'trans_id':req['trans_id'], 'args':{}}
+                lsp_item['uid'] = req['args']['uid']
+                request_data['args'] = lsp_item
+                resp = yield vendor_ctrler.do_pure_query(microsrv_te_flow_man_url,'POST',json.dumps(request_data))
+                pass
+            # else continue this status check loop
+            else:
+                tornado.ioloop.IOLoop.instance().add_timeout(datetime.timedelta(seconds=microsrv_status_check_duration), ms_controller_add_lsp_status_check, times, req, resp)
+                pass
+    else:
+        #return to callback
+        print('return to callback')
+        lsp_item = dict.copy(microsrv_lsp_template)
+        lsp_item['status'] = microsrv_lsp_status_map['created']
+        request_data = {'request':req['args']['callback'], 'ts':req['ts'], 'trans_id':req['trans_id'], 'args':{}}
+        lsp_item['uid'] = req['args']['uid']
+        request_data['args'] = lsp_item
+        resp = yield vendor_ctrler.do_pure_query(microsrv_te_flow_man_url,'POST',json.dumps(request_data))
+        pass
     '''
+    print('return to callback')
+    #microsrv_flow_template = {"flow_src": "", "flow_dst": "", "flow_uid": "","status":1, "user_data": {}}
+    flow_item = dict.copy(microsrv_flow_template)
+    flow_item['status'] = microsrv_flow_status_map['active']
+    request_data = {'request':req['args']['callback'], 'ts':req['ts'], 'trans_id':req['trans_id'], 'args':{}}
+    if ('uid' in req['args']['flow']):
+        flow_item['flow_uid'] = req['args']['flow']['uid']
+    if ('lsp_uid' in req['args']):
+        flow_item['lsp_uid'] = req['args']['lsp_uid']
+    flow_item['user_data'] = req['args']['user_data']
+    # flow_item['user_data']['flow_id'] = 'flow_' + req['args']['user_data']['lsp_name']
+    # flow_item['user_data']['flow_name'] = 'flow_' + req['args']['user_data']['lsp_name']
+    request_data['args'] = flow_item
+    req_url = microsrv_te_flow_man_url
+    if (req['args']['callback'].startswith('http')):
+        req_url = req['args']['callback']
+        resp = yield vendor_ctrler.do_pure_query(req_url,'POST',json.dumps(request_data['args']))
+    else:
+        resp = yield vendor_ctrler.do_pure_query(req_url,'POST',json.dumps(request_data))
+    pass
+
+@tornado.gen.coroutine
+def ms_controller_del_flow_status_check(times, req, resp):
+    times += 1
+    # vendor checker,
+
+    controller_vendor_map = {'JUNIPER' : juniper_controller,
+                        'CISCO': cisco_controller,
+                       'ZTE': zte_controller,
+                       'ALU' :alu_controller}
+    vendor_name = 'ALU'
+    if('from_router_uid' in req['args']):
+        vendor_name = microsrv_equip_map[req['args']['from_router_uid']]['vendor']
+        pass
+    elif('user_data' in req['args']):
+        vendor_name = microsrv_equip_map[req['args']['user_data']['from_router_uid']]['vendor']
+        pass
+    print('xxx:' + vendor_name)
+    vendor_ctrler = controller_vendor_map[vendor_name]()
+    '''
+    vendor_ctrler.form_url(req)
+    vendor_ctrler.form_method(req)
+    vendor_ctrler.form_request(req)
+    vendor_result = yield vendor_ctrler.do_query(req, None, None)
+    print(vendor_result)
+
+    if (vendor_result != None and 'lsps' in vendor_result and  vendor_result['lsps'].__len__() > 0):
+        for lsp_item in vendor_result['lsps']:
+            # if status is up or down,return to callback,
+            # finish this status check thread
+            # elif times == 30, return current status
+            if(lsp_item['status'] == microsrv_lsp_status_map['up'] or
+                lsp_item['status'] == microsrv_lsp_status_map['down'] or times == microsrv_status_check_times):
+                #return to callback
+                print('return to callback')
+                request_data = {'request':req['args']['callback'], 'ts':req['ts'], 'trans_id':req['trans_id'], 'args':{}}
+                lsp_item['uid'] = req['args']['uid']
+                request_data['args'] = lsp_item
+                resp = yield vendor_ctrler.do_pure_query(microsrv_te_flow_man_url,'POST',json.dumps(request_data))
+                pass
+            # else continue this status check loop
+            else:
+                tornado.ioloop.IOLoop.instance().add_timeout(datetime.timedelta(seconds=microsrv_status_check_duration), ms_controller_add_lsp_status_check, times, req, resp)
+                pass
+    else:
+        #return to callback
+        print('return to callback')
+        lsp_item = dict.copy(microsrv_lsp_template)
+        lsp_item['status'] = microsrv_lsp_status_map['created']
+        request_data = {'request':req['args']['callback'], 'ts':req['ts'], 'trans_id':req['trans_id'], 'args':{}}
+        lsp_item['uid'] = req['args']['uid']
+        request_data['args'] = lsp_item
+        resp = yield vendor_ctrler.do_pure_query(microsrv_te_flow_man_url,'POST',json.dumps(request_data))
+        pass
+    '''
+    print('return to callback')
+    #microsrv_flow_template = {"flow_src": "", "flow_dst": "", "flow_uid": "","status":1, "user_data": {}}
+    flow_item = dict.copy(microsrv_flow_template)
+    flow_item['status'] = microsrv_flow_status_map['no_scheduled']
+    request_data = {'request':req['args']['callback'], 'ts':req['ts'], 'trans_id':req['trans_id'], 'args':{}}
+    if ('uid' in req['args']['flow']):
+        flow_item['flow_uid'] = req['args']['flow']['uid']
+    if ('lsp_uid' in req['args']):
+        flow_item['lsp_uid'] = req['args']['lsp_uid']
+    # flow_item['user_data'] = req['args']['user_data']
+    # flow_item['user_data']['flow_id'] = "123"
+    # flow_item['user_data']['flow_name'] = "22222"
+    request_data['args'] = flow_item
+    req_url = microsrv_te_flow_man_url
+    if (req['args']['callback'].startswith('http')):
+        req_url = req['args']['callback']
+        resp = yield vendor_ctrler.do_pure_query(req_url,'POST',json.dumps(request_data['args']))
+    else:
+        resp = yield vendor_ctrler.do_pure_query(req_url,'POST',json.dumps(request_data))
+    pass
+
+@tornado.gen.coroutine
+def juniper_token_refresh(e_need_refresh, e_refresh_suc):
+    '''
+    POST /oauth2/token HTTP/1.1
+    Host: 219.141.189.67:8443
+    Authorization: Basic YWRtaW46YWRtaW4xMjM=
+    Cache-Control: no-cache
+    Postman-Token: af7446d8-9e23-16d0-c1ea-3d4284bb66ea
+    Content-Type: application/x-www-form-urlencoded
+
+    grant_type=password&username=admin&password=admin123
+    '''
+    print('juniper_token_refresh running--')
+    ###do zte lsp get for node_id map start
+    print('zte lsp get for node_id map init')
+    req = {"args": {}, "request": "ms_controller_get_lsp"}
+    zte_ctrler = zte_controller()
+    zte_ctrler.form_url(req)
+    zte_ctrler.form_method(req)
+    zte_ctrler.form_request(req)
+    result = yield zte_ctrler.do_query(req, None, None)
+    ###end
+    ###do alu node get for node_name node_id map start
+    print('alu nodes get for node_id and node_name map init')
+    req = {"args": {}, "request": "ms_controller_get_node"}
+    alu_ctrler = alu_controller()
+    alu_ctrler.form_url(req)
+    alu_ctrler.form_method(req)
+    alu_ctrler.form_request(req)
+    result = yield alu_ctrler.do_query(req, None, None)
+    ###end
+    result = False
+    while(True):
+        yield e_need_refresh.wait()
+        token_headers = {'Authorization': 'Basic YWRtaW46YWRtaW4xMjM=', 'Content-Type': 'application/x-www-form-urlencoded', 'Cache-Control': 'no-cache'}
+        token_body = 'grant_type=password&username=admin&password=admin123'
+        try:
+            http_req = tornado.httpclient.HTTPRequest(microsrv_juniper_controller_host + microsrv_juniper_controller_token_url, method = 'POST', body = token_body, headers = token_headers, validate_cert = False)
+            client = tornado.httpclient.AsyncHTTPClient()
+            resp = yield tornado.gen.Task(client.fetch, http_req)
+            print("token refresh:" + str(resp.code) + "/" + str(resp.body))
+            # 200/{"access_token":"7w0H2r1zi5P/BSz4nkxcPUZtGWuBMdGHZaWiQQTUQ0c=","token_type":"Bearer"}
+            if (resp.code == 200):
+                result = True
+                resp_body = json.loads(resp.body)
+                microsrv_juniper_headers['Authorization'] = resp_body['token_type'] + ' ' + resp_body['access_token']
+                pass
+        except:
+            traceback.print_exc()
+            pass
+        e_refresh_suc.set()
+        e_need_refresh.clear()
+        pass
+    print('juniper_token_refresh running++')
+    raise tornado.gen.Return(result)
+    pass
+
+class base_handler(tornado.web.RequestHandler):
+
     def initialize(self):
-        super(controller_handler, self).initialize()
-        # TODO: Add your initialization code here.
-        # method map
-        # if req_method_map[ms_controller_get_lsp], need all vendors' reqs
-        self.req_method_map = {'ms_controller_get_lsp': True,
-                           'ms_controller_del_lsp': False,
-                           'ms_controller_update_lsp': False,
-                           'ms_controller_add_lsp' : False,
-                           'ms_controller_del_flow' : False,
-                           'ms_controller_get_flow' : False,
-                           'ms_controller_add_flow' : False,
-                           'ms_controller_set_equips':False}
+        """ Prepares the database for the entire class """
         pass
 
     @tornado.gen.coroutine
@@ -1364,7 +1697,6 @@ class controller_handler(tornado.web.RequestHandler):
 
     def do_set_equips_request(self, req):
         result = {}
-        print(str(req['args']))
         if ('equips' in req['args'] and  req['args']['equips'].__len__() > 0):
             microsrv_equip_map.clear()
             microsrv_equip_loopback_uid_map.clear()
@@ -1376,6 +1708,26 @@ class controller_handler(tornado.web.RequestHandler):
         result['err_code'] = 0
         result['msg'] = 'set equips finished'
         return result
+
+    pass
+
+class controller_handler(base_handler):
+    '''
+    Main query handler of ms_controller.
+    '''
+    def initialize(self):
+        super(controller_handler, self).initialize()
+        # TODO: Add your initialization code here.
+        # method map
+        # if req_method_map[ms_controller_get_lsp], need all vendors' reqs
+        self.req_method_map = {'ms_controller_get_lsp': True,
+                           'ms_controller_del_lsp': False,
+                           'ms_controller_update_lsp': False,
+                           'ms_controller_add_lsp' : False,
+                           'ms_controller_del_flow' : False,
+                           'ms_controller_get_flow' : False,
+                           'ms_controller_add_flow' : False,
+                           'ms_controller_set_equips':False}
         pass
 
     def form_response(self, req):
@@ -1383,7 +1735,7 @@ class controller_handler(tornado.web.RequestHandler):
         return resp
 
     def get(self):
-        self.write('FNDGP')
+        self.write('not implemented in controller')
         return
 
     @tornado.gen.coroutine
@@ -1410,11 +1762,11 @@ class controller_handler(tornado.web.RequestHandler):
                 pass
             elif (self.req_method_map[req['request']]):
                 print('do_all_vendors_req')
-                result = yield self.do_all_vendors_req(req, self.application.juniper_need_refresh, self.application.juniper_refresh_suc)
+                result = yield self.do_all_vendors_req(req, juniper_need_refresh, juniper_refresh_suc)
                 pass
             else:
                 print('do_dispatch_vendor_req')
-                result = yield self.do_dispatch_vendor_req(req, self.application.juniper_need_refresh, self.application.juniper_refresh_suc)
+                result = yield self.do_dispatch_vendor_req(req, juniper_need_refresh, juniper_refresh_suc)
                 pass
             # ctrler = base_controller()
             # ctrler.form_url(req)
@@ -1440,305 +1792,6 @@ class controller_handler(tornado.web.RequestHandler):
             self.finish()
         pass
 
-@tornado.gen.coroutine
-def ms_controller_add_lsp_status_check(times, req, resp):
-    times += 1
-    # vendor checker,
-    controller_vendor_map = {'JUNIPER' : juniper_controller,
-                        'CISCO': cisco_controller,
-                       'ZTE': zte_controller,
-                       'ALU' :alu_controller}
-    vendor_name = 'ALU'
-    if('from_router_uid' in req['args']):
-        vendor_name = microsrv_equip_map[req['args']['from_router_uid']]['vendor']
-        pass
-    elif('user_data' in req['args']):
-        vendor_name = microsrv_equip_map[req['args']['user_data']['from_router_uid']]['vendor']
-        pass
-    print('xxx:' + vendor_name)
-    vendor_ctrler = controller_vendor_map[vendor_name]()
-    vendor_ctrler.form_url(req)
-    vendor_ctrler.form_method(req)
-    vendor_ctrler.form_request(req)
-    vendor_result = yield vendor_ctrler.do_query(req, None, None)
-    print(vendor_result)
-
-    if (vendor_result != None and 'lsps' in vendor_result and  vendor_result['lsps'].__len__() > 0):
-        for lsp_item in vendor_result['lsps']:
-            # if status is up or down or missing,return to callback,
-            # finish this status check thread
-            # elif times == 30, return current status
-            if(lsp_item['status'] == microsrv_lsp_status_map['up'] or lsp_item['status'] == microsrv_lsp_status_map['missing'] or
-                lsp_item['status'] == microsrv_lsp_status_map['down'] or times == microsrv_status_check_times):
-                #return to callback
-                print('return to callback')
-                request_data = {'request':req['args']['callback'], 'ts':req['ts'], 'trans_id':req['trans_id'], 'args':{}}
-                lsp_item['uid'] = req['args']['uid']
-                request_data['args'] = lsp_item
-                resp = yield vendor_ctrler.do_pure_query(microsrv_te_lsp_man_url,'POST',json.dumps(request_data))
-                pass
-            # else continue this status check loop
-            else:
-                tornado.ioloop.IOLoop.instance().add_timeout(datetime.timedelta(seconds=microsrv_status_check_duration), ms_controller_add_lsp_status_check, times, req, resp)
-                pass
-    else:
-        #return to callback
-        print('return to callback')
-        lsp_item = dict.copy(microsrv_lsp_template)
-        lsp_item['status'] = microsrv_lsp_status_map['created']
-        request_data = {'request':req['args']['callback'], 'ts':req['ts'], 'trans_id':req['trans_id'], 'args':{}}
-        lsp_item['uid'] = req['args']['uid']
-        request_data['args'] = lsp_item
-        resp = yield vendor_ctrler.do_pure_query(microsrv_te_lsp_man_url,'POST',json.dumps(request_data))
-        pass
-
-    pass
-
-@tornado.gen.coroutine
-def ms_controller_del_lsp_status_check(times, req, resp):
-    times += 1
-    # vendor checker,
-    controller_vendor_map = {'JUNIPER' : juniper_controller,
-                        'CISCO': cisco_controller,
-                       'ZTE': zte_controller,
-                       'ALU' :alu_controller}
-    vendor_name = 'ALU'
-    if('from_router_uid' in req['args']):
-        vendor_name = microsrv_equip_map[req['args']['from_router_uid']]['vendor']
-        pass
-    elif('user_data' in req['args']):
-        vendor_name = microsrv_equip_map[req['args']['user_data']['from_router_uid']]['vendor']
-        pass
-    print('xxx:' + vendor_name)
-    vendor_ctrler = controller_vendor_map[vendor_name]()
-    vendor_ctrler.form_url(req)
-    vendor_ctrler.form_method(req)
-    vendor_ctrler.form_request(req)
-    vendor_result = yield vendor_ctrler.do_query(req, None, None)
-    print(vendor_result)
-
-    if (vendor_result != None and 'lsps' in vendor_result and  vendor_result['lsps'].__len__() > 0):
-        for lsp_item in vendor_result['lsps']:
-            # if status is up or down,return to callback,
-            # finish this status check thread
-            # elif times == 30, return current status
-            if(lsp_item['status'] == microsrv_lsp_status_map['removed'] and times != microsrv_status_check_times):
-                tornado.ioloop.IOLoop.instance().add_timeout(datetime.timedelta(seconds=microsrv_status_check_duration), ms_controller_del_lsp_status_check, times, req, resp)
-                pass
-            # else continue this status check loop
-            else:
-                #return to callback
-                print('return to callback')
-                request_data = {'request':req['args']['callback'], 'ts':req['ts'], 'trans_id':req['trans_id'], 'args':{}}
-                lsp_item['uid'] = req['args']['uid']
-                request_data['args'] = lsp_item
-                resp = yield vendor_ctrler.do_pure_query(microsrv_te_lsp_man_url,'POST',json.dumps(request_data))
-                pass
-    else:
-        #return to callback, tell lsp delete finished
-        print('return to callback')
-        lsp_item = dict.copy(microsrv_lsp_template)
-        lsp_item['status'] = microsrv_lsp_status_map['deleted']
-        request_data = {'request':req['args']['callback'], 'ts':req['ts'], 'trans_id':req['trans_id'], 'args':{}}
-        lsp_item['uid'] = req['args']['uid']
-        request_data['args'] = lsp_item
-        resp = yield vendor_ctrler.do_pure_query(microsrv_te_lsp_man_url,'POST',json.dumps(request_data))
-        pass
-
-    pass
-
-@tornado.gen.coroutine
-def ms_controller_add_flow_status_check(times, req, resp):
-    times += 1
-    # vendor checker,
-
-    controller_vendor_map = {'JUNIPER' : juniper_controller,
-                        'CISCO': cisco_controller,
-                       'ZTE': zte_controller,
-                       'ALU' :alu_controller}
-    vendor_name = 'ALU'
-    if('from_router_uid' in req['args']):
-        vendor_name = microsrv_equip_map[req['args']['from_router_uid']]['vendor']
-        pass
-    elif('user_data' in req['args']):
-        vendor_name = microsrv_equip_map[req['args']['user_data']['from_router_uid']]['vendor']
-        pass
-    print('xxx:' + vendor_name)
-    vendor_ctrler = controller_vendor_map[vendor_name]()
-    '''
-    vendor_ctrler.form_url(req)
-    vendor_ctrler.form_method(req)
-    vendor_ctrler.form_request(req)
-    vendor_result = yield vendor_ctrler.do_query(req, None, None)
-    print(vendor_result)
-
-    if (vendor_result != None and 'lsps' in vendor_result and  vendor_result['lsps'].__len__() > 0):
-        for lsp_item in vendor_result['lsps']:
-            # if status is up or down,return to callback,
-            # finish this status check thread
-            # elif times == 30, return current status
-            if(lsp_item['status'] == microsrv_lsp_status_map['up'] or
-                lsp_item['status'] == microsrv_lsp_status_map['down'] or times == microsrv_status_check_times):
-                #return to callback
-                print('return to callback')
-                request_data = {'request':req['args']['callback'], 'ts':req['ts'], 'trans_id':req['trans_id'], 'args':{}}
-                lsp_item['uid'] = req['args']['uid']
-                request_data['args'] = lsp_item
-                resp = yield vendor_ctrler.do_pure_query(microsrv_te_flow_man_url,'POST',json.dumps(request_data))
-                pass
-            # else continue this status check loop
-            else:
-                tornado.ioloop.IOLoop.instance().add_timeout(datetime.timedelta(seconds=microsrv_status_check_duration), ms_controller_add_lsp_status_check, times, req, resp)
-                pass
-    else:
-        #return to callback
-        print('return to callback')
-        lsp_item = dict.copy(microsrv_lsp_template)
-        lsp_item['status'] = microsrv_lsp_status_map['created']
-        request_data = {'request':req['args']['callback'], 'ts':req['ts'], 'trans_id':req['trans_id'], 'args':{}}
-        lsp_item['uid'] = req['args']['uid']
-        request_data['args'] = lsp_item
-        resp = yield vendor_ctrler.do_pure_query(microsrv_te_flow_man_url,'POST',json.dumps(request_data))
-        pass
-    '''
-    print('return to callback')
-    #microsrv_flow_template = {"flow_src": "", "flow_dst": "", "flow_uid": "","status":1, "user_data": {}}
-    flow_item = dict.copy(microsrv_flow_template)
-    flow_item['status'] = microsrv_flow_status_map['active']
-    request_data = {'request':req['args']['callback'], 'ts':req['ts'], 'trans_id':req['trans_id'], 'args':{}}
-    flow_item['flow_uid'] = req['args']['flow']['uid']
-    flow_item['user_data'] = req['args']['user_data']
-    # flow_item['user_data']['flow_id'] = 'flow_' + req['args']['user_data']['lsp_name']
-    # flow_item['user_data']['flow_name'] = 'flow_' + req['args']['user_data']['lsp_name']
-    request_data['args'] = flow_item
-    resp = yield vendor_ctrler.do_pure_query(microsrv_te_flow_man_url,'POST',json.dumps(request_data))
-    pass
-
-
-@tornado.gen.coroutine
-def ms_controller_del_flow_status_check(times, req, resp):
-    times += 1
-    # vendor checker,
-
-    controller_vendor_map = {'JUNIPER' : juniper_controller,
-                        'CISCO': cisco_controller,
-                       'ZTE': zte_controller,
-                       'ALU' :alu_controller}
-    vendor_name = 'ALU'
-    if('from_router_uid' in req['args']):
-        vendor_name = microsrv_equip_map[req['args']['from_router_uid']]['vendor']
-        pass
-    elif('user_data' in req['args']):
-        vendor_name = microsrv_equip_map[req['args']['user_data']['from_router_uid']]['vendor']
-        pass
-    print('xxx:' + vendor_name)
-    vendor_ctrler = controller_vendor_map[vendor_name]()
-    '''
-    vendor_ctrler.form_url(req)
-    vendor_ctrler.form_method(req)
-    vendor_ctrler.form_request(req)
-    vendor_result = yield vendor_ctrler.do_query(req, None, None)
-    print(vendor_result)
-
-    if (vendor_result != None and 'lsps' in vendor_result and  vendor_result['lsps'].__len__() > 0):
-        for lsp_item in vendor_result['lsps']:
-            # if status is up or down,return to callback,
-            # finish this status check thread
-            # elif times == 30, return current status
-            if(lsp_item['status'] == microsrv_lsp_status_map['up'] or
-                lsp_item['status'] == microsrv_lsp_status_map['down'] or times == microsrv_status_check_times):
-                #return to callback
-                print('return to callback')
-                request_data = {'request':req['args']['callback'], 'ts':req['ts'], 'trans_id':req['trans_id'], 'args':{}}
-                lsp_item['uid'] = req['args']['uid']
-                request_data['args'] = lsp_item
-                resp = yield vendor_ctrler.do_pure_query(microsrv_te_flow_man_url,'POST',json.dumps(request_data))
-                pass
-            # else continue this status check loop
-            else:
-                tornado.ioloop.IOLoop.instance().add_timeout(datetime.timedelta(seconds=microsrv_status_check_duration), ms_controller_add_lsp_status_check, times, req, resp)
-                pass
-    else:
-        #return to callback
-        print('return to callback')
-        lsp_item = dict.copy(microsrv_lsp_template)
-        lsp_item['status'] = microsrv_lsp_status_map['created']
-        request_data = {'request':req['args']['callback'], 'ts':req['ts'], 'trans_id':req['trans_id'], 'args':{}}
-        lsp_item['uid'] = req['args']['uid']
-        request_data['args'] = lsp_item
-        resp = yield vendor_ctrler.do_pure_query(microsrv_te_flow_man_url,'POST',json.dumps(request_data))
-        pass
-    '''
-    print('return to callback')
-    #microsrv_flow_template = {"flow_src": "", "flow_dst": "", "flow_uid": "","status":1, "user_data": {}}
-    flow_item = dict.copy(microsrv_flow_template)
-    flow_item['status'] = microsrv_flow_status_map['no_scheduled']
-    request_data = {'request':req['args']['callback'], 'ts':req['ts'], 'trans_id':req['trans_id'], 'args':{}}
-    flow_item['flow_uid'] = req['args']['uid']
-    # flow_item['user_data'] = req['args']['user_data']
-    # flow_item['user_data']['flow_id'] = "123"
-    # flow_item['user_data']['flow_name'] = "22222"
-    request_data['args'] = flow_item
-    resp = yield vendor_ctrler.do_pure_query(microsrv_te_flow_man_url,'POST',json.dumps(request_data))
-    pass
-
-@tornado.gen.coroutine
-def juniper_token_refresh(e_need_refresh, e_refresh_suc):
-    '''
-    POST /oauth2/token HTTP/1.1
-    Host: 219.141.189.67:8443
-    Authorization: Basic YWRtaW46YWRtaW4xMjM=
-    Cache-Control: no-cache
-    Postman-Token: af7446d8-9e23-16d0-c1ea-3d4284bb66ea
-    Content-Type: application/x-www-form-urlencoded
-
-    grant_type=password&username=admin&password=admin123
-    '''
-    print('juniper_token_refresh running--')
-    ###do zte lsp get for node_id map start
-    print('zte lsp get for node_id map init')
-    req = {"args": {}, "request": "ms_controller_get_lsp"}
-    zte_ctrler = zte_controller()
-    zte_ctrler.form_url(req)
-    zte_ctrler.form_method(req)
-    zte_ctrler.form_request(req)
-    result = yield zte_ctrler.do_query(req, None, None)
-    ###end
-    ###do alu node get for node_name node_id map start
-    print('alu nodes get for node_id and node_name map init')
-    req = {"args": {}, "request": "ms_controller_get_node"}
-    alu_ctrler = alu_controller()
-    alu_ctrler.form_url(req)
-    alu_ctrler.form_method(req)
-    alu_ctrler.form_request(req)
-    result = yield alu_ctrler.do_query(req, None, None)
-    ###end
-    result = False
-    while(True):
-        yield e_need_refresh.wait()
-        token_headers = {'Authorization': 'Basic YWRtaW46YWRtaW4xMjM=', 'Content-Type': 'application/x-www-form-urlencoded', 'Cache-Control': 'no-cache'}
-        token_body = 'grant_type=password&username=admin&password=admin123'
-        try:
-            http_req = tornado.httpclient.HTTPRequest(microsrv_juniper_controller_host + microsrv_juniper_controller_token_url, method = 'POST', body = token_body, headers = token_headers, validate_cert = False)
-            client = tornado.httpclient.AsyncHTTPClient()
-            resp = yield tornado.gen.Task(client.fetch, http_req)
-            print("token refresh:" + str(resp.code) + "/" + str(resp.body))
-            # 200/{"access_token":"7w0H2r1zi5P/BSz4nkxcPUZtGWuBMdGHZaWiQQTUQ0c=","token_type":"Bearer"}
-            if (resp.code == 200):
-                result = True
-                resp_body = json.loads(resp.body)
-                microsrv_juniper_headers['Authorization'] = resp_body['token_type'] + ' ' + resp_body['access_token']
-                pass
-        except:
-            traceback.print_exc()
-            pass
-        e_refresh_suc.set()
-        e_need_refresh.clear()
-        pass
-    print('juniper_token_refresh running++')
-    raise tornado.gen.Return(result)
-    pass
-
 class customer_app(tornado.web.Application):
     def __init__(self):
         handlers = [
@@ -1751,16 +1804,382 @@ class customer_app(tornado.web.Application):
         }
 
         tornado.web.Application.__init__(self, handlers, **settings)
-
-        # init global thread for juniper token refresh
-        self.juniper_need_refresh = tornado.locks.Event()
-        self.juniper_refresh_suc = tornado.locks.Event()
         pass
+
+@swagger.model()
+class lsp_item(object):
+    #microsrv_lsp_template = {"uid": "lsp_0", "from_router_name": "", "to_router_name": "", "bandwidth": "", "to_router_uid": "", "from_router_uid": "", "name": "", "hop_list":[], "path":[], "status":0, "user_data":{}}
+    def __init__(self, uid, from_router_name,to_router_name, bandwidth, to_router_uid, from_router_uid, lsp_name,hop_list,path,status,user_data):
+        self.uid = uid
+        self.from_router_name = from_router_name
+        self.to_router_name = to_router_name
+        self.bandwidth = bandwidth
+        self.to_router_uid = to_router_uid
+        self.from_router_uid = from_router_uid
+        self.lsp_name = lsp_name
+        self.hop_list = hop_list
+        self.path = path
+        self.status = status
+        self.user_data = user_data
+
+@swagger.model()
+class flow_item(object):
+    #{"flow_uid": "lsp_0", "flow_name": "", "lsp_uid": "lsp_0", "status":1, "priority":7, "flows": [{"flow_src": "1.2.3.0/24", "flow_dst": "5.6.7.8/24"},{"flow_src": "4.2.3.0/24"}]}
+    def __init__(self, flow_uid, flow_name, lsp_uid, status, priority, flows):
+        self.flow_uid = flow_uid
+        self.flow_name = flow_name
+        self.lsp_uid = lsp_uid
+        self.status = status
+        self.priority = priority
+        self.flows = flows
+
+class swagger_handler(base_handler):
+    """
+    The purpose of this class is to take benefit of inheritance and prepare
+    a set of common functions for
+    the handlers
+    """
+
+    def initialize(self):
+        """ Prepares the database for the entire class """
+        self.req_method_map = {'get-lsp' : 'ms_controller_get_lsp',
+                               'delete-lsp' : 'ms_controller_del_lsp',
+                               'update-lsp' : 'ms_controller_update_lsp',
+                               'create-lsp' : 'ms_controller_add_lsp',
+                               'delete-flow-policy' : 'ms_controller_del_flow',
+                               'get-flow-policy' : 'ms_controller_get_flow',
+                               'create-flow-policy' : 'ms_controller_add_flow',
+                               'set-nodes' : 'ms_controller_set_equips'}
+        pass
+
+    def prepare(self):
+        if not (self.request.method == "GET" or self.request.method == "DELETE"):
+            if self.request.headers.get("Content-Type") is not None:
+                if self.request.headers["Content-Type"].startswith(DEFAULT_REPRESENTATION):
+                    try:
+                        self.json_args = json.loads(self.request.body)
+                    except (ValueError, KeyError, TypeError) as error:
+                        raise tornado.web.HTTPError(HTTP_BAD_REQUEST,
+                                        "Bad Json format [{}]".
+                                        format(error))
+                else:
+                    self.json_args = None
+        pass
+
+    def form_request(self):
+        req = {}
+        req_body = {} if self.request.body.__len__() == 0 else json.loads(self.request.body)
+        req_action  = self.request.path[self.request.path.index(':') + 1:] #(path[path.index(':') + 1:])'/openoapi/sdno-driver-ct-te/v1/nodes:set-nodes'
+        req['request'] = self.req_method_map[req_action]
+        req['args'] = req_body
+        req['trans_id'] = int(time.time())
+        req['ts'] = time.strftime("%Y%m%d%H%M%S")
+        return req
+
+    @tornado.gen.coroutine
+    def do_post(self):
+        try:
+            print('<<< ' + str(self.request.body))
+            req = self.form_request()
+            resp = {}
+            resp = yield self.do_dispatch_vendor_req(req, juniper_need_refresh, juniper_refresh_suc)
+            print('>>> ' + str(resp))
+            self.finish_request(resp)
+
+        except Exception, data:
+            traceback.print_exc()
+            print str(Exception) + ':' + str(data)
+            self.finish_request(self.form_error_response(str(data)))
+        pass
+
+    def form_response(self, req):
+        resp = {'response':req['request'], 'ts':req['ts'], 'trans_id':req['trans_id'], 'err_code':0, 'msg':''}
+        return resp
+
+    def form_error_response(self, err_msg):
+        resp = {'err_code':-1, 'msg':'swagger controller error: ' + err_msg}
+        return resp
+
+    def finish_request(self, json_object):
+        self.write(json.dumps(json_object))
+        self.set_header("Content-Type", DEFAULT_REPRESENTATION)
+        self.finish()
+
+    pass
+
+class handler_set_nodes(swagger_handler):
+
+    @tornado.gen.coroutine
+    @swagger.operation(nickname='set-nodes')
+    def post(self):
+        """
+            @param node_list: a list of equip property.
+            @type node_list: L{JsonArray}
+            @in node_list: body
+            @required node_list: True
+            @rtype: {"err_code":0, "msg":"set equips finished"}
+            @description: set equips(ne property) to te_driver
+            @notes:
+                set equips, this will be added to te_driver, in order to adapter to different vendor's controller.
+                <br /> Requested Sample <br />
+                {"equips":[
+                {"vendor": "ZTE", "uid": "PE14Z", "pos": "Old village of Gao", "community": "roastedchikenPE14Z", "ip_str": "14.14.14.14", "y": 48.9, "x": 113.8, "model": "aladin", "name": "PE14Z"}
+                ]}
+        """
+        try:
+            print('<<< ' + str(self.request.body))
+            req = self.form_request()
+            resp = {}
+            resp = self.do_set_equips_request(req)
+            print('>>> ' + str(resp))
+            self.finish_request(resp)
+
+        except Exception, data:
+            traceback.print_exc()
+            print str(Exception) + ':' + str(data)
+            self.finish_request(self.form_error_response(str(data)))
+        pass
+
+class handler_get_lsp(swagger_handler):
+
+    @tornado.gen.coroutine
+    @swagger.operation(nickname='get-lsp')
+    def post(self):
+        """
+            @param body: include lsp property uid and user_data
+            @type body: L{Json}
+            @in body: body
+            @required body: False
+            @rtype: L{lsp_item}
+            @description: get all lsps or an lsp of certain lsp_uid(included in req_body)
+            @notes:
+                get all lsps or an lsp of certain lsp_uid(included in req_body) from different vendor's controller.
+                <br />request body sample:<br />
+                {"uid": "46", "user_data": { "lsp_id": "46", "from_router_uid": "PE11A", "lsp_name": "LSP_1-8" }}
+                <br /> uid: lsp_uid;
+                <br /> user_data:lsp context, got from get-lsp or create-lsp response, if body include lsp_uid, user_data is necessary
+                <br />Return Sample:<br />
+                [
+                {"uid": "lsp_0", "from_router_name": "", "to_router_name": "", "bandwidth": "", "to_router_uid": "", "from_router_uid": "", "name": "", "hop_list":[], "path":[], "status":0, "priority":7, "delay":"", "user_data":{}}
+                ]
+        """
+        try:
+            print('<<< ' + str(self.request.body))
+            req = self.form_request()
+            resp = {}
+            if self.request.body.__len__() > 0:
+                resp = yield self.do_dispatch_vendor_req(req, juniper_need_refresh, juniper_refresh_suc)
+            else:
+                resp = yield self.do_all_vendors_req(req, juniper_need_refresh, juniper_refresh_suc)
+            print('>>> ' + str(resp))
+            self.finish_request(resp)
+
+        except Exception, data:
+            traceback.print_exc()
+            print str(Exception) + ':' + str(data)
+            self.finish_request(self.form_error_response(str(data)))
+        pass
+
+    pass
+
+class handler_delete_lsp(swagger_handler):
+
+    @tornado.gen.coroutine
+    @swagger.operation(nickname='delete-lsp')
+    def post(self):
+        """
+            @param body: include uid, user_data and callback
+            @type body: L{Json}
+            @in body: body
+            @required body: False
+            @rtype: {"lsp_uid":0, "lsp_name":"", "status":1}
+            @description: delete an lsp
+            @notes:
+                delete an lsp
+                <br />request body sample:
+                <br />{"uid": "46", "user_data": { "lsp_id": "46", "from_router_uid": "PE11A", "lsp_name": "LSP_1-8" }, "callback":"http://127.0.0.1/path"}
+                <br /> *uid: lsp_uid
+                <br /> *user_data:lsp context, got from get-lsp or create-lsp response, if body include lsp_uid, user_data is necessary
+                <br /> *callback: delete lsp need sometime, in controller side will query delete status  per 10s until the lsp is really deleted, then controller will tell caller through 'callback' with http POST, so the callback need described as url.
+                <br />callback Return Sample:<br />
+                {"uid": "lsp_0", "from_router_name": "", "to_router_name": "", "bandwidth": "", "to_router_uid": "", "from_router_uid": "", "name": "", "hop_list":[], "path":[], "status":0, "priority":7, "delay":"", "user_data":{}}
+        """
+        yield self.do_post()
+    pass
+
+class handler_create_lsp(swagger_handler):
+
+    @tornado.gen.coroutine
+    @swagger.operation(nickname='create-lsp')
+    def post(self):
+        """
+            @param body: lsp needed property description.
+            @type body: L{Json}
+            @in body: body
+            @required body: True
+            @rtype: {"lsp_uid":0, "lsp_name":"", "status":1, "user_data":{}}
+            @description: create an lsp
+            @notes:
+                create an lsp
+                <br />Request Sample:<br />
+                {"from_router_name": "", "to_router_name": "", "bandwidth": "", "to_router_uid": "", "from_router_uid": "", "callback":"http://127.0.0.1/path", "name": "", "hop_list":[], "priority":7, "delay":""}
+                <br /> * lsp model property
+                <br /> *callback: create lsp need sometime, in controller side will query delete status  per 10s until the lsp is really created, then controller will tell caller through 'callback' with http POST, so the callback need described as url.
+                <br />callback Return Sample:<br />
+                {"uid": "lsp_0", "from_router_name": "", "to_router_name": "", "bandwidth": "", "to_router_uid": "", "from_router_uid": "", "name": "", "hop_list":[], "path":[], "status":0, "priority":7, "delay":"", "user_data":{}}
+
+        """
+        yield self.do_post()
+
+    pass
+
+class handler_update_lsp(swagger_handler):
+
+    @tornado.gen.coroutine
+    @swagger.operation(nickname='update-lsp')
+    def post(self):
+        """
+            @param body: include uid, bandwidth, user_data
+            @type body: L{Json}
+            @in body: body
+            @required body: True
+            @rtype: {"lsp_uid":0, "lsp_name":"", "status":1}
+            @description: update an lsp
+            @notes:
+                update an lsp, the case only accepted for bandwidth property
+                <br />request body sample:
+                <br />{"uid": "46", "user_data": { "lsp_id": "46", "from_router_uid": "PE11A", "lsp_name": "LSP_1-8" }, "callback":"http://127.0.0.1/path", "bandwidth":""}
+                <br /> *uid: lsp_uid
+                <br /> *user_data:lsp context, got from get-lsp or create-lsp response, if body include lsp_uid, user_data is necessary
+        """
+        yield self.do_post()
+
+    pass
+
+class handler_delete_flow_policy(swagger_handler):
+
+    @tornado.gen.coroutine
+    @swagger.operation(nickname='delete-flow-policy')
+    def post(self):
+        """
+            @param body: include flow_uid, user_data and callback
+            @type body: L{Json}
+            @in body: body
+            @required body: True
+            @return 200
+            @description: delete one flow policy
+            @notes:
+                delete one flow policy
+                <br />request body sample:
+                <br />{"uid": "46", "user_data": {"lsp_id": "49", "flow_id": "flow_LSP_rest_1-6-5-8", "from_router_uid": 2, "flow_name": "lsp_LSP_rest_1-6-5-8_100", "lsp_name": "LSP_rest_1-6-5-8"}, "callback":"http://127.0.0.1/path"}
+                <br /> *uid: flow_uid
+                <br /> *user_data:lsp&flow context, got from create-flow callback response
+                <br /> *callback: delete flow need sometime, in controller side will query delete status  per 10s until the flow is really deleted, then controller will tell caller through 'callback' with http POST, so the callback need described as url.
+                <br />callback Return Sample:<br />
+                {"flow_src": "", "flow_dst": "", "flow_uid": "","status":1, "user_data": {}}
+        """
+        yield self.do_post()
+    pass
+
+class handler_create_flow_policy(swagger_handler):
+
+    @tornado.gen.coroutine
+    @swagger.operation(nickname='create-flow-policy')
+    def post(self):
+        """
+            @param body: add flow to lsp, needed property description
+            @type body: L{Json}
+            @in body: body
+            @required body: True
+            @return 200
+            @description: add flow to lsp
+            @notes:
+                add flow to lsp
+                <br/>Request body Sample<br/>
+                {"flow_name": "", "lsp_uid": "lsp_0", "priority":7, "flow": {"src": "1.2.3.0/24", "dst": "5.6.7.8/24"},"user_data": {'lsp_id': '41', 'from_router_uid': 'PE11A', 'lsp_name': 'ALU_S'}, "callback":"http://127.0.0.1/path"}
+                <br /> *user_data:lsp context, got from get-lsp or create-lsp response, when add flow to lsp, the lsp's user_data is necessary
+                <br /> *callback: add flow to lsp need sometime, in controller side will query delete status  per 10s until the lsp is really added, then controller will tell caller through 'callback' with http POST, so the callback need described as url.
+                <br /> callback Return Sample:<br />
+                {"flow_src": "", "flow_dst": "", "flow_uid": "","status":1, "user_data": {}}
+        """
+        yield self.do_post()
+    pass
+
+class handler_get_flow_policy(swagger_handler):
+
+    @tornado.gen.coroutine
+    @swagger.operation(nickname='get-flow-policy')
+    def post(self):
+        """
+            @param flow_uid: flow policy unique key
+            @type flow_uid: L{String}
+            @in flow_uid: body
+            @required flow_uid: False
+            @rtype: L{flow_item}
+            @description: get all flow policy or one flow policy of certain flow_uid(included in req_body)
+            @notes:
+                get all flow policy or one flow policy of certain flow_uid
+                <br/>Request body Sample<br/>
+                [
+                {"uid": "flow_uid", "user_data": {"lsp_id": "49", "flow_id": "flow_LSP_rest_1-6-5-8", "from_router_uid": 2, "flow_name": "lsp_LSP_rest_1-6-5-8_100", "lsp_name": "LSP_rest_1-6-5-8"}}
+                ]
+        """
+        yield self.do_post()
+        # self.finish_request('not implemented yet')
+    pass
+
+def openo_register(name, ver, url, ip, port, ttl = 0):
+
+    req = {'serviceName':name, 'version':ver, 'url':url, 'protocol':'REST', 'visualRange':1,
+           'nodes':[{'ip':ip, 'port':port, 'ttl':ttl}]}
+
+    rpc = base_rpc(openo_ms_url)
+    rpc.set_request(req)
+    resp = rpc.do_sync_post(0)
+
+    # openo_query_service(name, ver)
+    pass
+
+def make_swagger_app():
+    '''
+    Driver  /openoapi/sdno-driver-ct-te/v1/
+    * POST nodes:set-nodes
+    * POST lsps:get-lsp
+    * POST lsps:delete-lsp
+    * POST lsps:create-lsp
+    * POST lsps:update-lsp
+    * POST flow-policy:delete-flow-policy
+    * POST flow-policy:create-flow-policy
+    * POST flow-policy:get-flow-policy
+    '''
+    settings = {
+        'static_path': os.path.join(os.path.dirname(__file__), 'sdno-driver-ct-te.swagger')
+    }
+    return swagger.Application([
+        (openapi_swagger_prefix_uri + r"nodes:set-nodes", handler_set_nodes),
+        (openapi_swagger_prefix_uri + r"lsps:get-lsp", handler_get_lsp),
+        (openapi_swagger_prefix_uri + r"lsps:delete-lsp", handler_delete_lsp),
+        (openapi_swagger_prefix_uri + r"lsps:create-lsp", handler_create_lsp),
+        (openapi_swagger_prefix_uri + r"lsps:update-lsp", handler_update_lsp),
+        (openapi_swagger_prefix_uri + r"flow-policy:delete-flow-policy", handler_delete_flow_policy),
+        (openapi_swagger_prefix_uri + r"flow-policy:create-flow-policy", handler_create_flow_policy),
+        (openapi_swagger_prefix_uri + r"flow-policy:get-flow-policy", handler_get_flow_policy),
+        (openapi_swagger_prefix_uri + r"(swagger.json)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
+    ])
 
 if __name__ == '__main__':
     tornado.options.parse_command_line()
     app = customer_app()
     server = tornado.httpserver.HTTPServer(app)
     server.listen(12727)
-    tornado.ioloop.IOLoop.instance().add_timeout(datetime.timedelta(milliseconds=100), juniper_token_refresh, app.juniper_need_refresh, app.juniper_refresh_suc)
+    swagger_app = make_swagger_app()# For REST interface
+    swagger_app.listen(te_driver_rest_port)
+    # init global thread for juniper token refresh
+    juniper_need_refresh = tornado.locks.Event()
+    juniper_refresh_suc = tornado.locks.Event()
+    tornado.ioloop.IOLoop.instance().add_timeout(datetime.timedelta(milliseconds=100), juniper_token_refresh, juniper_need_refresh, juniper_refresh_suc)
+    tornado.ioloop.IOLoop.instance().add_timeout(
+                        datetime.timedelta(milliseconds=500),
+                        openo_register, 'sdno-driver-ct-te', 'v1', openapi_swagger_prefix_uri,
+                        '127.0.0.1', te_driver_rest_port)
     tornado.ioloop.IOLoop.instance().start()
