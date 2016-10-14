@@ -7,7 +7,7 @@
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
 #
-#          http://www.apache.org/licenses/LICENSE-2.0
+#      http://www.apache.org/licenses/LICENSE-2.0
 #
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,12 +15,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+
 from sqlite3 import Time
 
-__author__ = 'Siag'
 
 from jsonrpc import *
 from microsrvurl import *
+from common import *
 from tornado_swagger import swagger
 import os
 import os.path
@@ -31,6 +32,7 @@ import tornado.web
 import tornado.httpclient
 import tornado.gen
 import tornado.locks
+import tornado.testing
 import json
 import threading
 import traceback
@@ -39,6 +41,12 @@ import time
 import copy
 import httplib
 import urlparse
+import sys
+
+from ctrl_huawei.bprint import varprt, varfmt
+from ctrl_huawei.xlogger import *
+
+__author__ = 'Siag'
 
 #swagger#
 DEFAULT_REPRESENTATION = "application/json"
@@ -52,15 +60,556 @@ microsrv_te_lsp_man_url = te_lsp_man_url #'http://10.9.63.140:32772/'
 microsrv_te_flow_man_url = te_flow_sched_url #'http://10.9.63.140:32773/'
 microsrv_status_check_times = 30
 microsrv_status_check_duration = 5
-microsrv_equip_map = {"11": {"vendor": "ZTE", "uid": "11", "community": "ctbri", "x": 220.0, "y": 380.0, "ip_str": "4.4.4.4", "ports": [{"capacity": 1000, "uid": "38", "if_name": "xgei-0/0/0/7", "mac": "00-00-0A-00-72-04", "ip_str": "10.0.114.4", "type": 0, "if_index": 28}, {"capacity": 1000, "uid": "39", "if_name": "xgei-0/0/0/4", "mac": "00-00-0A-00-7C-04", "ip_str": "10.0.124.4", "type": 0, "if_index": 29}, {"capacity": 1000, "uid": "40", "if_name": "xgei-0/0/0/6", "mac": "00-00-0A-00-86-04", "ip_str": "10.0.134.4", "type": 0, "if_index": 30}, {"capacity": 1000, "uid": "41", "if_name": "xgei-0/0/0/3", "mac": "00-00-0A-00-0E-04", "ip_str": "10.0.14.4", "type": 0, "if_index": 31}, {"capacity": 1000, "uid": "42", "if_name": "xgei-0/0/0/2", "mac": "00-00-0A-00-22-04", "ip_str": "10.0.34.4", "type": 0, "if_index": 32}, {"capacity": 1000, "uid": "43", "if_name": "xgei-0/0/0/1", "mac": "00-00-0A-00-2E-04", "ip_str": "10.0.46.4", "type": 0, "if_index": 33}], "name": "R4"}, "10": {"vendor": "ZTE", "uid": "10", "community": "ctbri", "x": 335.0, "y": 225.0, "ip_str": "3.3.3.3", "ports": [{"capacity": 1000, "uid": "32", "if_name": "xgei-0/0/0/1", "mac": "00-00-0A-00-0D-03", "ip_str": "10.0.13.3", "type": 0, "if_index": 22}, {"capacity": 1000, "uid": "33", "if_name": "xgei-0/0/0/2", "mac": "00-00-0A-00-22-03", "ip_str": "10.0.34.3", "type": 0, "if_index": 23}, {"capacity": 1000, "uid": "34", "if_name": "xgei-0/0/0/3", "mac": "00-00-0A-00-24-03", "ip_str": "10.0.36.3", "type": 0, "if_index": 24}, {"capacity": 1000, "uid": "35", "if_name": "xgei-0/0/0/7", "mac": "00-00-0A-00-D5-03", "ip_str": "10.0.213.3", "type": 0, "if_index": 25}, {"capacity": 1000, "uid": "36", "if_name": "xgei-0/0/0/4", "mac": "00-00-0A-00-DF-03", "ip_str": "10.0.223.3", "type": 0, "if_index": 26}, {"capacity": 1000, "uid": "37", "if_name": "xgei-0/0/0/6", "mac": "00-00-0A-00-E9-03", "ip_str": "10.0.233.3", "type": 0, "if_index": 27}], "name": "R3"}, "12": {"vendor": "ZTE", "uid": "12", "community": "ctbri", "x": 335.0, "y": 380.0, "ip_str": "6.6.6.6", "ports": [{"capacity": 1000, "uid": "44", "if_name": "xgei-0/0/0/1", "mac": "00-00-0A-00-2E-06", "ip_str": "10.0.46.6", "type": 0, "if_index": 34}, {"capacity": 1000, "uid": "45", "if_name": "xgei-0/0/0/2", "mac": "00-00-0A-00-10-06", "ip_str": "10.0.16.6", "type": 0, "if_index": 35}, {"capacity": 1000, "uid": "46", "if_name": "xgei-0/0/0/3", "mac": "00-00-0A-00-24-06", "ip_str": "10.0.36.6", "type": 0, "if_index": 36}, {"capacity": 1000, "uid": "47", "if_name": "xgei-0/0/0/7", "mac": "00-00-0A-00-D8-06", "ip_str": "10.0.216.6", "type": 0, "if_index": 37}, {"capacity": 1000, "uid": "48", "if_name": "xgei-0/0/0/4", "mac": "00-00-0A-00-E2-06", "ip_str": "10.0.226.6", "type": 0, "if_index": 38}, {"capacity": 1000, "uid": "49", "if_name": "xgei-0/0/0/6", "mac": "00-00-0A-00-EC-06", "ip_str": "10.0.236.6", "type": 0, "if_index": 39}], "name": "R6"}, "1": {"vendor": "ZTE", "uid": "1", "community": "ctbri", "x": 0.0, "y": 150.0, "ip_str": "14.14.14.14", "ports": [{"capacity": 1000, "uid": "1", "if_name": "xgei-0/0/0/3", "mac": "00-00-0A-00-8C-0E", "ip_str": "10.0.140.14", "type": 0, "if_index": 0}], "name": "PE14_ZTE"}, "3": {"vendor": "JUNIPPER", "uid": "3", "community": "ctbri", "x": 115.0, "y": 305.0, "ip_str": "12.12.12.12", "ports": [{"capacity": 1000, "uid": "14", "if_name": "pe12_121", "mac": "00-00-0A-00-79-0C", "ip_str": "10.0.121.12", "type": 0, "if_index": 4}, {"capacity": 1000, "uid": "15", "if_name": "pe12_124", "mac": "00-00-0A-00-7C-0C", "ip_str": "10.0.124.12", "type": 0, "if_index": 5}], "name": "PE12_JUNIPPER"}, "2": {"vendor": "ALU", "uid": "2", "community": "ctbri", "x": 115.0, "y": 150.0, "ip_str": "11.11.11.11", "ports": [{"capacity": 1000, "uid": "2", "if_name": "ALU   1/1/4", "mac": "00-00-0A-00-8C-0B", "ip_str": "10.0.140.11", "type": 0, "if_index": 1}, {"capacity": 1000, "uid": "3", "if_name": "ALU   1/1/1", "mac": "00-00-0A-00-6F-0B", "ip_str": "10.0.111.11", "type": 0, "if_index": 2}, {"capacity": 1000, "uid": "13", "if_name": "ALU   1/1/2", "mac": "00-00-0A-00-72-0B", "ip_str": "10.0.114.11", "type": 0, "if_index": 3}], "name": "PE11_ALU"}, "5": {"vendor": "ZTE", "uid": "5", "community": "ctbri", "x": 530.0, "y": 150.0, "ip_str": "24.24.24.24", "ports": [{"capacity": 1000, "uid": "18", "if_name": "xgei-0/0/0/3", "mac": "00-00-0A-00-F0-18", "ip_str": "10.0.240.24", "type": 0, "if_index": 8}], "name": "PE24_ZTE"}, "4": {"vendor": "CISCO", "uid": "4", "community": "ctbri", "x": 115.0, "y": 460.0, "ip_str": "13.13.13.13", "ports": [{"capacity": 1000, "uid": "16", "if_name": "ten0/0/2/0", "mac": "00-00-0A-00-83-0D", "ip_str": "10.0.131.13", "type": 0, "if_index": 6}, {"capacity": 1000, "uid": "17", "if_name": "ten0/0/2/1", "mac": "00-00-0A-00-86-0D", "ip_str": "10.0.134.13", "type": 0, "if_index": 7}], "name": "PE13_CISCO"}, "7": {"vendor": "JUNIPPER", "uid": "7", "community": "ctbri", "x": 430.0, "y": 305.0, "ip_str": "22.22.22.22", "ports": [{"capacity": 1000, "uid": "22", "if_name": "pe22_223", "mac": "00-00-0A-00-DF-16", "ip_str": "10.0.223.22", "type": 0, "if_index": 12}, {"capacity": 1000, "uid": "23", "if_name": "pe22_226", "mac": "00-00-0A-00-E2-16", "ip_str": "10.0.226.22", "type": 0, "if_index": 13}], "name": "PE22_JUNIPPER"}, "6": {"vendor": "ALU", "uid": "6", "community": "ctbri", "x": 430.0, "y": 150.0, "ip_str": "21.21.21.21", "ports": [{"capacity": 1000, "uid": "19", "if_name": "ALU   1/1/3", "mac": "00-00-0A-00-F0-15", "ip_str": "10.0.240.21", "type": 0, "if_index": 9}, {"capacity": 1000, "uid": "20", "if_name": "ALU   1/1/1", "mac": "00-00-0A-00-D5-15", "ip_str": "10.0.213.21", "type": 0, "if_index": 10}, {"capacity": 1000, "uid": "21", "if_name": "ALU   1/1/2", "mac": "00-00-0A-00-D8-15", "ip_str": "10.0.216.21", "type": 0, "if_index": 11}], "name": "PE21_ALU"}, "9": {"vendor": "ZTE", "uid": "9", "community": "ctbri", "x": 220.0, "y": 225.0, "ip_str": "1.1.1.1", "ports": [{"capacity": 1000, "uid": "26", "if_name": "xgei-0/0/0/7", "mac": "00-00-0A-00-6F-01", "ip_str": "10.0.111.1", "type": 0, "if_index": 16}, {"capacity": 1000, "uid": "27", "if_name": "xgei-0/0/0/4", "mac": "00-00-0A-00-79-01", "ip_str": "10.0.121.1", "type": 0, "if_index": 17}, {"capacity": 1000, "uid": "28", "if_name": "xgei-0/0/0/6", "mac": "00-00-0A-00-83-01", "ip_str": "10.0.131.1", "type": 0, "if_index": 18}, {"capacity": 1000, "uid": "29", "if_name": "xgei-0/0/0/1", "mac": "00-00-0A-00-0D-01", "ip_str": "10.0.13.1", "type": 0, "if_index": 19}, {"capacity": 1000, "uid": "30", "if_name": "xgei-0/0/0/3", "mac": "00-00-0A-00-0E-01", "ip_str": "10.0.14.1", "type": 0, "if_index": 20}, {"capacity": 1000, "uid": "31", "if_name": "xgei-0/0/0/2", "mac": "00-00-0A-00-10-01", "ip_str": "10.0.16.1", "type": 0, "if_index": 21}], "name": "R1"}, "8": {"vendor": "CISCO", "uid": "8", "community": "ctbri", "x": 430.0, "y": 460.0, "ip_str": "23.23.23.23", "ports": [{"capacity": 1000, "uid": "24", "if_name": "ten0/0/2/0", "mac": "00-00-0A-00-E9-17", "ip_str": "10.0.233.23", "type": 0, "if_index": 14}, {"capacity": 1000, "uid": "25", "if_name": "ten0/0/2/1", "mac": "00-00-0A-00-EC-17", "ip_str": "10.0.236.23", "type": 0, "if_index": 15}], "name": "PE"}}
+microsrv_equip_map = {
+    "UID_HUAWEI": {
+        "community": "ctbri",
+        "ip_str": "14.14.14.14",
+        "name": "PE14_HUAWEI",
+        "ports": [
+            {
+                "capacity": 1000,
+                "if_index": 0,
+                "if_name": "xgei-0/0/0/3",
+                "ip_str": "10.0.140.14",
+                "mac": "00-00-0A-00-8C-0E",
+                "type": 0,
+                "uid": "1"
+            }
+        ],
+        "uid": "UID_HUAWEI",
+        "vendor": "HUAWEI",
+        "x": 0.0,
+        "y": 150.0
+    },
+    "1": {
+        "community": "ctbri",
+        "ip_str": "14.14.14.14",
+        "name": "PE14_ZTE",
+        "ports": [
+            {
+                "capacity": 1000,
+                "if_index": 0,
+                "if_name": "xgei-0/0/0/3",
+                "ip_str": "10.0.140.14",
+                "mac": "00-00-0A-00-8C-0E",
+                "type": 0,
+                "uid": "1"
+            }
+        ],
+        "uid": "1",
+        "vendor": "ZTE",
+        "x": 0.0,
+        "y": 150.0
+    },
+    "10": {
+        "community": "ctbri",
+        "ip_str": "3.3.3.3",
+        "name": "R3",
+        "ports": [
+            {
+                "capacity": 1000,
+                "if_index": 22,
+                "if_name": "xgei-0/0/0/1",
+                "ip_str": "10.0.13.3",
+                "mac": "00-00-0A-00-0D-03",
+                "type": 0,
+                "uid": "32"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 23,
+                "if_name": "xgei-0/0/0/2",
+                "ip_str": "10.0.34.3",
+                "mac": "00-00-0A-00-22-03",
+                "type": 0,
+                "uid": "33"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 24,
+                "if_name": "xgei-0/0/0/3",
+                "ip_str": "10.0.36.3",
+                "mac": "00-00-0A-00-24-03",
+                "type": 0,
+                "uid": "34"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 25,
+                "if_name": "xgei-0/0/0/7",
+                "ip_str": "10.0.213.3",
+                "mac": "00-00-0A-00-D5-03",
+                "type": 0,
+                "uid": "35"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 26,
+                "if_name": "xgei-0/0/0/4",
+                "ip_str": "10.0.223.3",
+                "mac": "00-00-0A-00-DF-03",
+                "type": 0,
+                "uid": "36"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 27,
+                "if_name": "xgei-0/0/0/6",
+                "ip_str": "10.0.233.3",
+                "mac": "00-00-0A-00-E9-03",
+                "type": 0,
+                "uid": "37"
+            }
+        ],
+        "uid": "10",
+        "vendor": "ZTE",
+        "x": 335.0,
+        "y": 225.0
+    },
+    "11": {
+        "community": "ctbri",
+        "ip_str": "4.4.4.4",
+        "name": "R4",
+        "ports": [
+            {
+                "capacity": 1000,
+                "if_index": 28,
+                "if_name": "xgei-0/0/0/7",
+                "ip_str": "10.0.114.4",
+                "mac": "00-00-0A-00-72-04",
+                "type": 0,
+                "uid": "38"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 29,
+                "if_name": "xgei-0/0/0/4",
+                "ip_str": "10.0.124.4",
+                "mac": "00-00-0A-00-7C-04",
+                "type": 0,
+                "uid": "39"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 30,
+                "if_name": "xgei-0/0/0/6",
+                "ip_str": "10.0.134.4",
+                "mac": "00-00-0A-00-86-04",
+                "type": 0,
+                "uid": "40"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 31,
+                "if_name": "xgei-0/0/0/3",
+                "ip_str": "10.0.14.4",
+                "mac": "00-00-0A-00-0E-04",
+                "type": 0,
+                "uid": "41"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 32,
+                "if_name": "xgei-0/0/0/2",
+                "ip_str": "10.0.34.4",
+                "mac": "00-00-0A-00-22-04",
+                "type": 0,
+                "uid": "42"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 33,
+                "if_name": "xgei-0/0/0/1",
+                "ip_str": "10.0.46.4",
+                "mac": "00-00-0A-00-2E-04",
+                "type": 0,
+                "uid": "43"
+            }
+        ],
+        "uid": "11",
+        "vendor": "ZTE",
+        "x": 220.0,
+        "y": 380.0
+    },
+    "12": {
+        "community": "ctbri",
+        "ip_str": "6.6.6.6",
+        "name": "R6",
+        "ports": [
+            {
+                "capacity": 1000,
+                "if_index": 34,
+                "if_name": "xgei-0/0/0/1",
+                "ip_str": "10.0.46.6",
+                "mac": "00-00-0A-00-2E-06",
+                "type": 0,
+                "uid": "44"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 35,
+                "if_name": "xgei-0/0/0/2",
+                "ip_str": "10.0.16.6",
+                "mac": "00-00-0A-00-10-06",
+                "type": 0,
+                "uid": "45"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 36,
+                "if_name": "xgei-0/0/0/3",
+                "ip_str": "10.0.36.6",
+                "mac": "00-00-0A-00-24-06",
+                "type": 0,
+                "uid": "46"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 37,
+                "if_name": "xgei-0/0/0/7",
+                "ip_str": "10.0.216.6",
+                "mac": "00-00-0A-00-D8-06",
+                "type": 0,
+                "uid": "47"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 38,
+                "if_name": "xgei-0/0/0/4",
+                "ip_str": "10.0.226.6",
+                "mac": "00-00-0A-00-E2-06",
+                "type": 0,
+                "uid": "48"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 39,
+                "if_name": "xgei-0/0/0/6",
+                "ip_str": "10.0.236.6",
+                "mac": "00-00-0A-00-EC-06",
+                "type": 0,
+                "uid": "49"
+            }
+        ],
+        "uid": "12",
+        "vendor": "ZTE",
+        "x": 335.0,
+        "y": 380.0
+    },
+    "2": {
+        "community": "ctbri",
+        "ip_str": "11.11.11.11",
+        "name": "PE11_ALU",
+        "ports": [
+            {
+                "capacity": 1000,
+                "if_index": 1,
+                "if_name": "ALU   1/1/4",
+                "ip_str": "10.0.140.11",
+                "mac": "00-00-0A-00-8C-0B",
+                "type": 0,
+                "uid": "2"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 2,
+                "if_name": "ALU   1/1/1",
+                "ip_str": "10.0.111.11",
+                "mac": "00-00-0A-00-6F-0B",
+                "type": 0,
+                "uid": "3"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 3,
+                "if_name": "ALU   1/1/2",
+                "ip_str": "10.0.114.11",
+                "mac": "00-00-0A-00-72-0B",
+                "type": 0,
+                "uid": "13"
+            }
+        ],
+        "uid": "2",
+        "vendor": "ALU",
+        "x": 115.0,
+        "y": 150.0
+    },
+    "3": {
+        "community": "ctbri",
+        "ip_str": "12.12.12.12",
+        "name": "PE12_JUNIPPER",
+        "ports": [
+            {
+                "capacity": 1000,
+                "if_index": 4,
+                "if_name": "pe12_121",
+                "ip_str": "10.0.121.12",
+                "mac": "00-00-0A-00-79-0C",
+                "type": 0,
+                "uid": "14"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 5,
+                "if_name": "pe12_124",
+                "ip_str": "10.0.124.12",
+                "mac": "00-00-0A-00-7C-0C",
+                "type": 0,
+                "uid": "15"
+            }
+        ],
+        "uid": "3",
+        "vendor": "JUNIPPER",
+        "x": 115.0,
+        "y": 305.0
+    },
+    "4": {
+        "community": "ctbri",
+        "ip_str": "13.13.13.13",
+        "name": "PE13_CISCO",
+        "ports": [
+            {
+                "capacity": 1000,
+                "if_index": 6,
+                "if_name": "ten0/0/2/0",
+                "ip_str": "10.0.131.13",
+                "mac": "00-00-0A-00-83-0D",
+                "type": 0,
+                "uid": "16"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 7,
+                "if_name": "ten0/0/2/1",
+                "ip_str": "10.0.134.13",
+                "mac": "00-00-0A-00-86-0D",
+                "type": 0,
+                "uid": "17"
+            }
+        ],
+        "uid": "4",
+        "vendor": "CISCO",
+        "x": 115.0,
+        "y": 460.0
+    },
+    "5": {
+        "community": "ctbri",
+        "ip_str": "24.24.24.24",
+        "name": "PE24_ZTE",
+        "ports": [
+            {
+                "capacity": 1000,
+                "if_index": 8,
+                "if_name": "xgei-0/0/0/3",
+                "ip_str": "10.0.240.24",
+                "mac": "00-00-0A-00-F0-18",
+                "type": 0,
+                "uid": "18"
+            }
+        ],
+        "uid": "5",
+        "vendor": "ZTE",
+        "x": 530.0,
+        "y": 150.0
+    },
+    "6": {
+        "community": "ctbri",
+        "ip_str": "21.21.21.21",
+        "name": "PE21_ALU",
+        "ports": [
+            {
+                "capacity": 1000,
+                "if_index": 9,
+                "if_name": "ALU   1/1/3",
+                "ip_str": "10.0.240.21",
+                "mac": "00-00-0A-00-F0-15",
+                "type": 0,
+                "uid": "19"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 10,
+                "if_name": "ALU   1/1/1",
+                "ip_str": "10.0.213.21",
+                "mac": "00-00-0A-00-D5-15",
+                "type": 0,
+                "uid": "20"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 11,
+                "if_name": "ALU   1/1/2",
+                "ip_str": "10.0.216.21",
+                "mac": "00-00-0A-00-D8-15",
+                "type": 0,
+                "uid": "21"
+            }
+        ],
+        "uid": "6",
+        "vendor": "ALU",
+        "x": 430.0,
+        "y": 150.0
+    },
+    "7": {
+        "community": "ctbri",
+        "ip_str": "22.22.22.22",
+        "name": "PE22_JUNIPPER",
+        "ports": [
+            {
+                "capacity": 1000,
+                "if_index": 12,
+                "if_name": "pe22_223",
+                "ip_str": "10.0.223.22",
+                "mac": "00-00-0A-00-DF-16",
+                "type": 0,
+                "uid": "22"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 13,
+                "if_name": "pe22_226",
+                "ip_str": "10.0.226.22",
+                "mac": "00-00-0A-00-E2-16",
+                "type": 0,
+                "uid": "23"
+            }
+        ],
+        "uid": "7",
+        "vendor": "JUNIPPER",
+        "x": 430.0,
+        "y": 305.0
+    },
+    "8": {
+        "community": "ctbri",
+        "ip_str": "23.23.23.23",
+        "name": "PE",
+        "ports": [
+            {
+                "capacity": 1000,
+                "if_index": 14,
+                "if_name": "ten0/0/2/0",
+                "ip_str": "10.0.233.23",
+                "mac": "00-00-0A-00-E9-17",
+                "type": 0,
+                "uid": "24"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 15,
+                "if_name": "ten0/0/2/1",
+                "ip_str": "10.0.236.23",
+                "mac": "00-00-0A-00-EC-17",
+                "type": 0,
+                "uid": "25"
+            }
+        ],
+        "uid": "8",
+        "vendor": "CISCO",
+        "x": 430.0,
+        "y": 460.0
+    },
+    "9": {
+        "community": "ctbri",
+        "ip_str": "1.1.1.1",
+        "name": "R1",
+        "ports": [
+            {
+                "capacity": 1000,
+                "if_index": 16,
+                "if_name": "xgei-0/0/0/7",
+                "ip_str": "10.0.111.1",
+                "mac": "00-00-0A-00-6F-01",
+                "type": 0,
+                "uid": "26"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 17,
+                "if_name": "xgei-0/0/0/4",
+                "ip_str": "10.0.121.1",
+                "mac": "00-00-0A-00-79-01",
+                "type": 0,
+                "uid": "27"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 18,
+                "if_name": "xgei-0/0/0/6",
+                "ip_str": "10.0.131.1",
+                "mac": "00-00-0A-00-83-01",
+                "type": 0,
+                "uid": "28"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 19,
+                "if_name": "xgei-0/0/0/1",
+                "ip_str": "10.0.13.1",
+                "mac": "00-00-0A-00-0D-01",
+                "type": 0,
+                "uid": "29"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 20,
+                "if_name": "xgei-0/0/0/3",
+                "ip_str": "10.0.14.1",
+                "mac": "00-00-0A-00-0E-01",
+                "type": 0,
+                "uid": "30"
+            },
+            {
+                "capacity": 1000,
+                "if_index": 21,
+                "if_name": "xgei-0/0/0/2",
+                "ip_str": "10.0.16.1",
+                "mac": "00-00-0A-00-10-01",
+                "type": 0,
+                "uid": "31"
+            }
+        ],
+        "uid": "9",
+        "vendor": "ZTE",
+        "x": 220.0,
+        "y": 225.0
+    }
+}
 
-microsrv_equip_loopback_uid_map = {"13.13.13.13": "4", "12.12.12.12": "3", "11.11.11.11": "2", "22.22.22.22": "7", "4.4.4.4": "11", "6.6.6.6": "12", "24.24.24.24": "5", "3.3.3.3": "10", "21.21.21.21": "6", "1.1.1.1": "9", "14.14.14.14": "1", "23.23.23.23": "8"}
+microsrv_equip_loopback_uid_map = {
+    "1.1.1.1": "9",
+    "11.11.11.11": "2",
+    "12.12.12.12": "3",
+    "13.13.13.13": "4",
+    "14.14.14.14": "1",
+    "21.21.21.21": "6",
+    "22.22.22.22": "7",
+    "23.23.23.23": "8",
+    "24.24.24.24": "5",
+    "3.3.3.3": "10",
+    "4.4.4.4": "11",
+    "6.6.6.6": "12"
+}
+
+
 # Not Scheduled(-1), scheduling(0), scheduled(1), De-scheduling(2)
 microsrv_flow_status_map = {"active":1, "no_scheduled":-1}
 microsrv_flow_template = {"flow_src": "", "flow_dst": "", "flow_uid": "","status":1, "user_data": {}}
 # LSP status:   creating(0), up(1), down(-1), missing(-2), deleting(2), deleted(3)
 microsrv_lsp_status_map = {"created":0, "up":1, "down":-1, "missing":-2, "removed":2, "deleted":3}
-microsrv_lsp_template = {"uid": "lsp_0", "from_router_name": "", "to_router_name": "", "bandwidth": "", "to_router_uid": "", "from_router_uid": "", "name": "", "hop_list":[], "path":[], "status":0, "user_data":{}}
+microsrv_lsp_template = {
+    "bandwidth": "",
+    "from_router_name": "",
+    "from_router_uid": "",
+    "hop_list": [],
+    "name": "",
+    "path": [],
+    "status": 0,
+    "to_router_name": "",
+    "to_router_uid": "",
+    "uid": "lsp_0",
+    "user_data": {}
+}
+
 #juniper
 microsrv_juniper_controller_url = "/NorthStar/API/v1/tenant/1/topology/1/te-lsps/"
 microsrv_juniper_controller_token_url = "/oauth2/token/"
@@ -72,8 +621,35 @@ microsrv_zte_headers = {'Authorization': 'Basic YWRtaW46YWRtaW4=', 'Content-Type
 #alu
 microsrv_alu_controller_url = "/sdn/"
 microsrv_alu_headers = {'Authorization': 'Basic dGVzdDp0ZXN0'}
-microsrv_alu_nodename_maps = {"11.11.11.11":"1","12.12.12.12":"2","13.13.13.13":"3","1.1.1.1":"4","3.3.3.3":"5","4.4.4.4":"6","6.6.6.6":"7","21.21.21.21":"8","22.22.22.22":"9","23.23.23.23":"10","14.14.14.14":"11","24.24.24.24":"12"}
-microsrv_alu_nodeid_maps = {"1":"11.11.11.11","2":"12.12.12.12","3":"13.13.13.13","4":"1.1.1.1","5":"3.3.3.3","6":"4.4.4.4","7":"6.6.6.6","8":"21.21.21.21","9":"22.22.22.22","10":"23.23.23.23","11":"14.14.14.14","12":"24.24.24.24"}
+microsrv_alu_nodename_maps = {
+    "1.1.1.1": "4",
+    "11.11.11.11": "1",
+    "12.12.12.12": "2",
+    "13.13.13.13": "3",
+    "14.14.14.14": "11",
+    "21.21.21.21": "8",
+    "22.22.22.22": "9",
+    "23.23.23.23": "10",
+    "24.24.24.24": "12",
+    "3.3.3.3": "5",
+    "4.4.4.4": "6",
+    "6.6.6.6": "7"
+}
+
+microsrv_alu_nodeid_maps = {
+    "1": "11.11.11.11",
+    "10": "23.23.23.23",
+    "11": "14.14.14.14",
+    "12": "24.24.24.24",
+    "2": "12.12.12.12",
+    "3": "13.13.13.13",
+    "4": "1.1.1.1",
+    "5": "3.3.3.3",
+    "6": "4.4.4.4",
+    "7": "6.6.6.6",
+    "8": "21.21.21.21",
+    "9": "22.22.22.22"
+}
 
 class useTronadoResp():
     def __init__(self):
@@ -97,11 +673,11 @@ class base_controller(object):
         pass
 
     @tornado.gen.coroutine
-    def do_pure_query(self, req_url, req_method, req_body):
+    def do_pure_query(self, req_url, req_method, req_body, req_headers=None):
         result = None
         try:
             print(">>> " + req_body)
-            http_req = tornado.httpclient.HTTPRequest(req_url, method = req_method, body = req_body)
+            http_req = tornado.httpclient.HTTPRequest(req_url, method = req_method, body = req_body, headers = req_headers)
             client = tornado.httpclient.AsyncHTTPClient()
             result = yield tornado.gen.Task(client.fetch, http_req)
             if (result.code == 599):
@@ -1304,14 +1880,88 @@ class alu_controller(base_controller):
         return {} #resp.body
         pass
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### #####################################################################
+# Hwawee
+#
+from ctrl_huawei import huawei
+
+class huawei_controller(base_controller):
+    def __init__(self):
+        super(huawei_controller, self).__init__()
+        self.sub_req_body = None
+        self.url = None
+        self.headers = None
+        self.method = None
+
+        self.map_cmd_cls = {
+            "ms_controller_add_lsp": huawei.TunnelCreate,
+            "ms_controller_update_lsp": huawei.TunnelModify,
+            "ms_controller_del_lsp": huawei.TunnelDelete,
+            "ms_controller_get_lsp": huawei.TunnelQuery,
+        }
+
+        huawei.einfo.set_map(microsrv_equip_map, microsrv_equip_loopback_uid_map)
+
+    @tornado.gen.coroutine
+    def do_query(self, req, e_need_fresh, e_fresh_suc):
+        cmd = req['request']
+        cls = self.map_cmd_cls.get(cmd)
+
+        resp = huawei.call(cls, req)
+        klog.d(varfmt(resp, "RESP"))
+
+        result = {
+            "err_code": 0,
+            "msg": resp.toDict()
+        }
+        return result
+
+
+
+controller_vendor_map = {
+    'JUNIPER': juniper_controller,
+    'CISCO': cisco_controller,
+    'ZTE': zte_controller,
+    'ALU': alu_controller,
+    'HUAWEI': huawei_controller,
+}
+
+
+
+
+
+
 @tornado.gen.coroutine
 def ms_controller_add_lsp_status_check(times, req, resp):
     times += 1
     # vendor checker,
-    controller_vendor_map = {'JUNIPER' : juniper_controller,
-                        'CISCO': cisco_controller,
-                       'ZTE': zte_controller,
-                       'ALU' :alu_controller}
     vendor_name = 'ALU'
     if('from_router_uid' in req['args']):
         vendor_name = microsrv_equip_map[req['args']['from_router_uid']]['vendor']
@@ -1372,10 +2022,6 @@ def ms_controller_add_lsp_status_check(times, req, resp):
 def ms_controller_del_lsp_status_check(times, req, resp):
     times += 1
     # vendor checker,
-    controller_vendor_map = {'JUNIPER' : juniper_controller,
-                        'CISCO': cisco_controller,
-                       'ZTE': zte_controller,
-                       'ALU' :alu_controller}
     vendor_name = 'ALU'
     if('from_router_uid' in req['args']):
         vendor_name = microsrv_equip_map[req['args']['from_router_uid']]['vendor']
@@ -1436,10 +2082,6 @@ def ms_controller_add_flow_status_check(times, req, resp):
     times += 1
     # vendor checker,
 
-    controller_vendor_map = {'JUNIPER' : juniper_controller,
-                        'CISCO': cisco_controller,
-                       'ZTE': zte_controller,
-                       'ALU' :alu_controller}
     vendor_name = 'ALU'
     if('from_router_uid' in req['args']):
         vendor_name = microsrv_equip_map[req['args']['from_router_uid']]['vendor']
@@ -1511,10 +2153,6 @@ def ms_controller_del_flow_status_check(times, req, resp):
     times += 1
     # vendor checker,
 
-    controller_vendor_map = {'JUNIPER' : juniper_controller,
-                        'CISCO': cisco_controller,
-                       'ZTE': zte_controller,
-                       'ALU' :alu_controller}
     vendor_name = 'ALU'
     if('from_router_uid' in req['args']):
         vendor_name = microsrv_equip_map[req['args']['from_router_uid']]['vendor']
@@ -1647,26 +2285,55 @@ class base_handler(tornado.web.RequestHandler):
     @tornado.gen.coroutine
     def do_all_vendors_req(self, req, e_need_fresh, e_fresh_suc):
         result = {'lsps':[]}
+        #huawei
+        try:
+            huawei_ctrler = huawei_controller()
+            huawei_ctrler.form_url(req)
+            huawei_ctrler.form_method(req)
+            huawei_ctrler.form_request(req)
+            huawei_result = yield huawei_ctrler.do_query(req, e_need_fresh, e_fresh_suc)
+        except:
+            huawei_result = []
+            pass
+
         #juniper
-        juniper_ctrler = juniper_controller()
-        juniper_ctrler.form_url(req)
-        juniper_ctrler.form_method(req)
-        juniper_ctrler.form_request(req)
-        juniper_result = yield juniper_ctrler.do_query(req, e_need_fresh, e_fresh_suc)
+        try:
+            juniper_ctrler = juniper_controller()
+            juniper_ctrler.form_url(req)
+            juniper_ctrler.form_method(req)
+            juniper_ctrler.form_request(req)
+            juniper_result = yield juniper_ctrler.do_query(req, e_need_fresh, e_fresh_suc)
+        except:
+            juniper_result = []
+            pass
         #zte
-        zte_ctrler = zte_controller()
-        zte_ctrler.form_url(req)
-        zte_ctrler.form_method(req)
-        zte_ctrler.form_request(req)
-        zte_result = yield zte_ctrler.do_query(req, e_need_fresh, e_fresh_suc)
+        try:
+            zte_ctrler = zte_controller()
+            zte_ctrler.form_url(req)
+            zte_ctrler.form_method(req)
+            zte_ctrler.form_request(req)
+            zte_result = yield zte_ctrler.do_query(req, e_need_fresh, e_fresh_suc)
+        except:
+            zte_result = []
+            pass
         #alu
-        alu_ctrler = alu_controller()
-        alu_ctrler.form_url(req)
-        alu_ctrler.form_method(req)
-        alu_ctrler.form_request(req)
-        alu_result = yield alu_ctrler.do_query(req, e_need_fresh, e_fresh_suc)
+        try:
+            alu_ctrler = alu_controller()
+            alu_ctrler.form_url(req)
+            alu_ctrler.form_method(req)
+            alu_ctrler.form_request(req)
+            alu_result = yield alu_ctrler.do_query(req, e_need_fresh, e_fresh_suc)
+        except:
+            alu_result = []
+            pass
         print("alu_result:" + str(alu_result))
         # merge all vendors' result
+
+        try:
+            result['lsps'].append(huawei_result["msg"]["lsps"])
+        except:
+            pass
+
         if (juniper_result != None and 'lsps' in juniper_result):
             for lsp_item in juniper_result['lsps']:
                 result['lsps'].append(lsp_item)
@@ -1688,19 +2355,14 @@ class base_handler(tornado.web.RequestHandler):
     @tornado.gen.coroutine
     def do_dispatch_vendor_req(self, req, e_need_fresh, e_fresh_suc):
         # vendor checker,
-        self.controller_vendor_map = {'JUNIPER' : juniper_controller,
-                            'CISCO': cisco_controller,
-                           'ZTE': zte_controller,
-                           'ALU' :alu_controller}
-        vendor_name = 'ALU'
         if('from_router_uid' in req['args']):
             vendor_name = microsrv_equip_map[req['args']['from_router_uid']]['vendor']
             pass
         elif('user_data' in req['args']):
             vendor_name = microsrv_equip_map[req['args']['user_data']['from_router_uid']]['vendor']
             pass
-        print('xxx:' + vendor_name)
-        vendor_ctrler = self.controller_vendor_map[vendor_name]()
+
+        vendor_ctrler = controller_vendor_map[vendor_name]()
         vendor_ctrler.form_url(req)
         vendor_ctrler.form_method(req)
         vendor_ctrler.form_request(req)
@@ -1775,7 +2437,7 @@ class controller_handler(base_handler):
             if (req['request'] and req['request'] == 'ms_controller_set_equips'):
                 self.do_set_equips_request(req)
                 pass
-            elif (self.req_method_map[req['request']]):
+            elif (self.req_method_map[req['request']] and 'uid' not in req['args']):
                 print('do_all_vendors_req')
                 result = yield self.do_all_vendors_req(req, juniper_need_refresh, juniper_refresh_suc)
                 pass
@@ -1864,7 +2526,9 @@ class swagger_handler(base_handler):
                                'delete-flow-policy' : 'ms_controller_del_flow',
                                'get-flow-policy' : 'ms_controller_get_flow',
                                'create-flow-policy' : 'ms_controller_add_flow',
-                               'set-nodes' : 'ms_controller_set_equips'}
+                               'set-nodes' : 'ms_controller_set_equips',
+                               'create-link' : 'ms_controller_add_lsp'}
+
         pass
 
     def prepare(self):
@@ -2143,16 +2807,42 @@ class handler_get_flow_policy(swagger_handler):
         # self.finish_request('not implemented yet')
     pass
 
-def openo_register(name, ver, url, ip, port, ttl = 0):
+class handler_create_link(swagger_handler):
 
-    req = {'serviceName':name, 'version':ver, 'url':url, 'protocol':'REST', 'visualRange':1,
-           'nodes':[{'ip':ip, 'port':port, 'ttl':ttl}]}
+    @tornado.gen.coroutine
+    @swagger.operation(nickname='create-link')
+    def post(self):
+        """
+            @param body: controller_id, create_link needed parameters
+            @type body: L{Json}
+            @in body: body
+            @required body: True
+            @return 200
+            @description: create_link
+            @notes:
+                create_link
+                <br/>Request body Sample<br/>
+                {"controller_id": "", "link_parameters": {}}
+        """
+        try:
+            print('<<< ' + str(self.request.body))
+            req = self.form_request()
+            esr_resp = openo_esr_controller_info_req(req['args']['controller_id'])
+            esr_body = json.loads(esr_resp)
+            # {'driver_url':'', 'type':'', 'vendor':'', 'version':''}
+            vendor_ctrler = self.controller_vendor_map[esr_body['vendor']]()
+            vendor_ctrler.form_url(req)
+            vendor_ctrler.form_method(req)
+            vendor_ctrler.form_request(req)
+            vendor_result = yield vendor_ctrler.do_query(req, None, None)
+            print('>>> ' + str(vendor_result))
+            self.finish_request(vendor_result)
 
-    rpc = base_rpc(openo_ms_url)
-    rpc.set_request(req)
-    resp = rpc.do_sync_post(0)
-
-    # openo_query_service(name, ver)
+        except Exception, data:
+            traceback.print_exc()
+            print str(Exception) + ':' + str(data)
+            self.finish_request(self.form_error_response(str(data)))
+        pass
     pass
 
 def make_swagger_app():
@@ -2179,8 +2869,10 @@ def make_swagger_app():
         (openapi_swagger_prefix_uri + r"flow-policy:delete-flow-policy", handler_delete_flow_policy),
         (openapi_swagger_prefix_uri + r"flow-policy:create-flow-policy", handler_create_flow_policy),
         (openapi_swagger_prefix_uri + r"flow-policy:get-flow-policy", handler_get_flow_policy),
+        (openapi_swagger_prefix_uri + r"links:create-link", handler_create_link),
         (openapi_swagger_prefix_uri + r"(swagger.json)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
     ])
+
 
 if __name__ == '__main__':
     tornado.options.parse_command_line()
@@ -2195,6 +2887,6 @@ if __name__ == '__main__':
     tornado.ioloop.IOLoop.instance().add_timeout(datetime.timedelta(milliseconds=100), juniper_token_refresh, juniper_need_refresh, juniper_refresh_suc)
     tornado.ioloop.IOLoop.instance().add_timeout(
                         datetime.timedelta(milliseconds=500),
-                        openo_register, 'sdno-driver-ct-te', 'v1', openapi_swagger_prefix_uri,
-                        '127.0.0.1', te_driver_rest_port)
+                        openo_driver_register, 'sdno-driver-ct-te', 'sdno-driver-ct-te_ID', 'v1', openapi_swagger_prefix_uri,
+                        '127.0.0.1', te_driver_rest_port, 'ct_te_driver')
     tornado.ioloop.IOLoop.instance().start()
