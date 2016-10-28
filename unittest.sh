@@ -15,8 +15,6 @@
 #  limitations under the License.
 #
 
-BASEDIR=$(dirname $(readlink -f $0))
-
 #
 # Python
 #
@@ -40,6 +38,11 @@ rm -fr /tmp/swagger/
 unzip /tmp/swagger.zip -d /tmp/swagger/
 cd /tmp/swagger/tornado-swagger-master
 python setup.py install
-cd ${BASEDIR}
 
+# Python MySQL things
+yum install -y gcc.x86_64 
+yum install -y python-devel
+pip install MySQL-python
+pip install DBUtils
+pip install coverage
 

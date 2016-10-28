@@ -15,7 +15,15 @@
 #  limitations under the License.
 #
 
-PROC_UNIQ_KEY=cdcd3a41-e65f-4994-b073-8c1e21e8efe2
+MSB_ADDRESS="msb.openo.org:8086"
+SDNO_DRIVER_CT_TE_ADDRESS="sdno-driver-ct-te:8670"
 
+PROC_UNIQ_KEY=cdcd3a41-e65f-4994-b073-8c1e21e8efe2
 BASEDIR=$(dirname $(readlink -f $0))
-nohup python ${BASEDIR}/ms_controller.py --uniq=${PROC_UNIQ_KEY} &> /dev/null &
+
+OPTS=""
+OPTS+=" --uniq=${PROC_UNIQ_KEY}"
+OPTS+=" --msburl=${MSB_ADDRESS}"
+OPTS+=" --localurl=${SDNO_DRIVER_CT_TE_ADDRESS}"
+
+nohup python ${BASEDIR}/ms_controller.py ${OPTS} &> /dev/null &

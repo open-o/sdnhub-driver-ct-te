@@ -28,6 +28,7 @@ import os.path
 import tornado.httpserver
 import tornado.ioloop
 import tornado.options
+from tornado.options import options
 import tornado.web
 import tornado.httpclient
 import tornado.gen
@@ -56,8 +57,8 @@ HTTP_NOT_FOUND = 404
 openapi_swagger_prefix_uri = r'/openoapi/sdno-driver-ct-te/v1/'
 swagger.docs()
 
-microsrv_te_lsp_man_url = te_lsp_man_url #'http://10.9.63.140:32772/'
-microsrv_te_flow_man_url = te_flow_sched_url #'http://10.9.63.140:32773/'
+microsrv_te_lsp_man_url = microsrvurl_dict['te_lsp_man_url'] #'http://10.9.63.140:32772/'
+microsrv_te_flow_man_url = microsrvurl_dict['te_flow_sched_url'] #'http://10.9.63.140:32773/'
 microsrv_status_check_times = 30
 microsrv_status_check_duration = 5
 microsrv_equip_map = {
@@ -2827,10 +2828,26 @@ class handler_create_link(swagger_handler):
         try:
             print('<<< ' + str(self.request.body))
             req = self.form_request()
-            esr_resp = openo_esr_controller_info_req(req['args']['controller_id'])
+            esr_resp = openo_esr_controller_info_req(str(req['args']['controller_id']))
             esr_body = json.loads(esr_resp)
-            # {'driver_url':'', 'type':'', 'vendor':'', 'version':''}
-            vendor_ctrler = self.controller_vendor_map[esr_body['vendor']]()
+            '''
+            {
+               "sdnControllerId":"a6c42529-cd6b-4c01-b149-03eb54b20a03",
+               "name":"sdn",
+               "url":"http://10.74.151.13:8181",
+               "userName":"admin",
+               "password":"admin",
+               "version":"v1.0",
+               "vendor":"ZTE",
+               "description":"",
+               "protocol":"netconf",
+               "productName":"",
+               "type":"ODL",
+               "createTime":"2016-07-18 12:22:53"
+           }
+            '''
+            #dispatch which vendor ??? modify url? based on esr_body['url']
+            vendor_ctrler = controller_vendor_map[esr_body['vendor']]()
             vendor_ctrler.form_url(req)
             vendor_ctrler.form_method(req)
             vendor_ctrler.form_request(req)
@@ -2873,26 +2890,27 @@ def make_swagger_app():
         (openapi_swagger_prefix_uri + r"(swagger.json)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
     ])
 
-def strip_uniq_from_argv():
-    '''The --uniq is used to identify a process.
+def strip_parse_from_argv():
+    options.define("uniq", default="2837492392992727", help="service unique id")
+    options.define("localurl", default=microsrvurl_dict['te_driver_rest_host'] + te_host_port_divider + str(microsrvurl_dict['te_driver_rest_port']), help="service host:port")
+    options.define("msburl", default=microsrvurl_dict['te_msb_rest_host'] + te_host_port_divider + str(microsrvurl_dict['te_msb_rest_port']), help="micro service bus host:port")
+    tornado.options.parse_command_line()
+    microsrvurl_dict['te_driver_rest_host'] = options.localurl.split(':')[0]
+    microsrvurl_dict['te_driver_rest_port'] = int(options.localurl.split(':')[1])
+    microsrvurl_dict['openo_ms_url'] = te_protocol + options.msburl + openo_ms_url_prefix
+    microsrvurl_dict['openo_dm_url'] = te_protocol + options.msburl + openo_dm_url_prefix
+    microsrvurl_dict['openo_esr_url'] = te_protocol + options.msburl + openo_esr_url_prefix
+    microsrvurl_dict['openo_brs_url'] = te_protocol + options.msburl + openo_brs_url_prefix
 
-    a.py --uniq=2837492392994857 argm argn ... argz
-    ps aux | grep "--uniq=2837492392994857" | awk '{print $2}' | xargs kill -9
-    '''
-
-    for a in sys.argv:
-        if a.startswith("--uniq="):
-            sys.argv.remove(a)
+    pass
 
 if __name__ == '__main__':
-    strip_uniq_from_argv()
-
-    tornado.options.parse_command_line()
+    strip_parse_from_argv()
     app = customer_app()
     server = tornado.httpserver.HTTPServer(app)
     server.listen(12727)
     swagger_app = make_swagger_app()# For REST interface
-    swagger_app.listen(te_driver_rest_port)
+    swagger_app.listen( microsrvurl_dict['te_driver_rest_port'])
     # init global thread for juniper token refresh
     juniper_need_refresh = tornado.locks.Event()
     juniper_refresh_suc = tornado.locks.Event()
@@ -2900,5 +2918,5 @@ if __name__ == '__main__':
     tornado.ioloop.IOLoop.instance().add_timeout(
                         datetime.timedelta(milliseconds=500),
                         openo_driver_register, 'sdno-driver-ct-te', 'sdno-driver-ct-te_ID', 'v1', openapi_swagger_prefix_uri,
-                        '127.0.0.1', te_driver_rest_port, 'ct_te_driver')
+                        microsrvurl_dict['te_driver_rest_host'],  microsrvurl_dict['te_driver_rest_port'], 'ct_te_driver')
     tornado.ioloop.IOLoop.instance().start()
