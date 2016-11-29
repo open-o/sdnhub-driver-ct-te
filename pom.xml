@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <!--
     Copyright 2016 China Telecommunication Co., Ltd.
 
@@ -26,7 +27,7 @@
     <groupId>org.openo.sdno.driver-ct-te</groupId>
     <artifactId>ct_tedriver</artifactId>
     <packaging>pom</packaging>
-    <name>ct_tedriver</name>
+    <name>sdno-driver-ct-te</name>
     <description>Traffic Engineering Driver</description>
     <build>
       <defaultGoal>package</defaultGoal>
