@@ -16,19 +16,47 @@
 #  limitations under the License.
 #
 
-import os
-import sys
+from singleton import ClsSingleton
 
-curdir = os.path.dirname(os.path.realpath(__file__))
-miedir = os.path.join(curdir, "..", "mie")
-sys.path.append(miedir)
 
-import bprint as bprint
-import xlogger as xlogger
-import huawei as huawei
+class LogTan_Null():
+    __metaclass__ = ClsSingleton
 
-__all__ = [
-        "bprint",
-        "xlogger",
-        "huawei",
-]
+    @classmethod
+    def cfg(cls, **kwargs):
+        pass
+
+    def i(cls, rec, mod=None):
+        pass
+
+    def w(cls, rec, mod=None):
+        pass
+
+    def e(cls, rec, mod=None):
+        pass
+
+    def f(cls, rec, mod=None):
+        pass
+
+logtan = LogTan_Null()
+
+
+def cfg(**kwargs):
+    logtan.cfg(**kwargs)
+
+
+def i(mod=None, **kwargs):
+    logtan.i(rec, mod)
+
+
+def w(mod=None, **kwargs):
+    logtan.w(rec, mod)
+
+
+def e(mod=None, **kwargs):
+    logtan.e(rec, mod)
+
+
+def f(mod=None, **kwargs):
+    logtan.f(rec, mod)
+

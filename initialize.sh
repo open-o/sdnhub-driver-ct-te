@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#  Copyright 2016 China Telecommunication Co., Ltd.
+#  Copyright 2016-2017 China Telecommunication Co., Ltd.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -21,16 +21,54 @@ BASEDIR=$(dirname $(readlink -f $0))
 # Python
 #
 	
-#
-# Ensure the python-pip can be found and installed
-#
-yum -y install epel-release
+##
+## Prepare
+##
+
+yum install -y wget
+
+yum install -y epel-release
 yum install -y python-pip
-pip install --upgrade pip
+
+yum install -y libxml2
+yum install -y libxslt
+
+yum install -y libxslt-devel
+yum install -y gcc 
+
+yum install -y python-devel
+yum install -y libffi
+yum install -y libffi-devel
+yum install -y openssl-devel 
+
+pip install setuptools
+   
+##
+## Ensure packages are latest version
+##
+# pip list | awk '{print $1}' | xargs pip install -U 
+pip install -U setuptools
+
+##
+## Install ncclient
+##
+
+cd /tmp
+wget https://github.com/ncclient/ncclient/tarball/master -O /tmp/ncclient.tar.gz
+tar xvf /tmp/ncclient.tar.gz
+
+FOLDERNAME=`tar tvf /tmp/ncclient.tar.gz  | head  -n 1 | awk '{print $NF}'`
+cd $FOLDERNAME
+
+python setup.py install 
+
+
+##
+## Others
+##
 
 pip install epydoc
 pip install tornado
-pip install dotmap
 pip install bottle
 
 # Download and install the swagger module

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  Copyright 2016 China Telecommunication Co., Ltd.
+#  Copyright 2016-2017 China Telecommunication Co., Ltd.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ Beatiful print ojbect
 
 import sys
 import json
+from pygments import highlight, lexers, formatters
 
 ### ###########################################################
 # Beautiful print ...
@@ -44,7 +45,7 @@ class MyEnc(json.JSONEncoder):
             return str(o)
 
 
-def formatb(obj, title=None, lvl=1):
+def formatb(obj, title=None, lvl=1, color=False):
     if not isinstance(obj, dict):
         if hasattr(obj, "__dict__"):
             obj = obj.__dict__
@@ -52,7 +53,11 @@ def formatb(obj, title=None, lvl=1):
     orig = json.dumps(obj, indent=4, sort_keys=True, skipkeys=False, cls=MyEnc)
     text = eval("u'''%s'''" % orig).encode('utf-8')
 
-    res = text
+    if color:
+        fmt = formatters.TerminalFormatter()
+        res = highlight(unicode(text, 'UTF-8'), lexers.JsonLexer(), fmt)
+    else:
+        res = text
 
     if title is not None:
         f = sys._getframe(lvl)
@@ -67,8 +72,8 @@ def formatb(obj, title=None, lvl=1):
     return res
 
 
-def printb(obj, title=None, lvl=2):
-    print formatb(obj, title, lvl)
+def printb(obj, title=None, lvl=2, color=False):
+    print(formatb(obj, title, lvl, color))
 
 
 def todict(obj, classkey=None):
@@ -92,19 +97,21 @@ def todict(obj, classkey=None):
         return obj
 
 
-def varprt(obj, title=None):
-    printb(todict(obj), title, lvl=3)
+def varprt(obj, title=None, color=False):
+    printb(todict(obj), title, lvl=3, color=color)
 
 
-def varfmt(obj, title=None):
-    return formatb(todict(obj), title, lvl=2)
+def varfmt(obj, title=None, color=False):
+    return formatb(todict(obj), title, lvl=2, color=color)
 
 
 ### ###########################################################
 # Outout with color
 #
 class ColorPrint:
-    fmt = '\033[0;3{}m{}\033[0m'.format
+    # format for normal and bold
+    _fmtn = '\033[0;3{}m{}\033[0m'.format
+    _fmtb = '\033[1;3{}m{}\033[0m'.format
 
     BLACK = 0
     RED = 1
@@ -113,39 +120,51 @@ class ColorPrint:
     BLUE = 4
     PURPLE = 5
     CYAN = 6
+    WHITE = 7
     GRAY = 8
 
     @classmethod
-    def black(cls, s):
-        return cls.fmt(cls.BLACK, s)
+    def fmt(cls, color, bold=False):
+        if not bold:
+            return cls._fmtb
+        else:
+            return cls._fmtn
 
     @classmethod
-    def red(cls, s):
-        return cls.fmt(cls.RED, s)
+    def black(cls, s, bold=False):
+        return cls.fmt(bold)(cls.BLACK, s)
 
     @classmethod
-    def green(cls, s):
-        return cls.fmt(cls.GREEN, s)
+    def red(cls, s, bold=False):
+        return cls.fmt(bold)(cls.RED, s)
 
     @classmethod
-    def yellow(cls, s):
-        return cls.fmt(cls.YELLOW, s)
+    def green(cls, s, bold=False):
+        return cls.fmt(bold)(cls.GREEN, s)
 
     @classmethod
-    def blue(cls, s):
-        return cls.fmt(cls.BLUE, s)
+    def yellow(cls, s, bold=False):
+        return cls.fmt(bold)(cls.YELLOW, s)
 
     @classmethod
-    def purple(cls, s):
-        return cls.fmt(cls.PURPLE, s)
+    def blue(cls, s, bold=False):
+        return cls.fmt(bold)(cls.BLUE, s)
 
     @classmethod
-    def cyan(cls, s):
-        return cls.fmt(cls.CYAN, s)
+    def purple(cls, s, bold=False):
+        return cls.fmt(bold)(cls.PURPLE, s)
 
     @classmethod
-    def gray(cls, s):
-        return cls.fmt(cls.GRAY, s)
+    def cyan(cls, s, bold=False):
+        return cls.fmt(bold)(cls.CYAN, s)
+
+    @classmethod
+    def white(cls, s, bold=False):
+        return cls.fmt(bold)(cls.WHITE, s)
+
+    @classmethod
+    def gray(cls, s, bold=False):
+        return cls.fmt(bold)(cls.GRAY, s)
 
     r = red
     g = green
@@ -153,6 +172,7 @@ class ColorPrint:
     b = blue
     p = purple
     c = cyan
+    w = white
     h = gray
 
 cp = ColorPrint

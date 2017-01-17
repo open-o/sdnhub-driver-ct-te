@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#  Copyright 2016 China Telecommunication Co., Ltd.
+#  Copyright 2016-2017 China Telecommunication Co., Ltd.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -19,30 +19,95 @@
 # Python
 #
 	
-#
-# Ensure the python-pip can be found and installed
-#
-yum -y install epel-release
-yum install -y python-pip
-pip install --upgrade pip
+##
+## Prepare
+##
 
-pip install epydoc
-pip install tornado
-pip install dotmap
-pip install bottle
+RES=`grep -i ubuntu /etc/os-release`
+cat /etc/os-release
 
-# Download and install the swagger module
-curl https://github.com/SerenaFeng/tornado-swagger/archive/master.zip -L -o /tmp/swagger.zip 
-yum install -y unzip
-rm -fr /tmp/swagger/
-unzip /tmp/swagger.zip -d /tmp/swagger/
-cd /tmp/swagger/tornado-swagger-master
-python setup.py install
+if [ "$RES" == "" ]; then
+    yum install -y wget
 
-# Python MySQL things
-yum install -y gcc.x86_64 
-yum install -y python-devel
-pip install MySQL-python
-pip install DBUtils
-pip install coverage
+    yum install -y epel-release
+    yum install -y python-pip
+
+    yum install -y libxml2
+    yum install -y libxslt
+
+    yum install -y libxslt-devel
+    yum install -y gcc 
+
+    yum install -y python-devel
+    yum install -y libffi
+    yum install -y libffi-devel
+    yum install -y openssl-devel 
+
+
+    ##
+    ## Ensure packages are latest version
+    ##
+    # pip list | awk '{print $1}' | xargs pip install -U 
+    pip install setuptools
+    pip install -U setuptools
+
+    ##
+    ## Install ncclient
+    ##
+
+    cd /tmp
+    wget https://github.com/ncclient/ncclient/tarball/master -O /tmp/ncclient.tar.gz
+    tar xvf /tmp/ncclient.tar.gz
+
+    FOLDERNAME=`tar tvf /tmp/ncclient.tar.gz  | head  -n 1 | awk '{print $NF}'`
+    cd $FOLDERNAME
+
+    python setup.py install 
+
+
+    ##
+    ## Others
+    ##
+
+    pip install epydoc
+    pip install tornado
+    pip install bottle
+    pip install paste
+
+    # Download and install the swagger module
+    curl https://github.com/SerenaFeng/tornado-swagger/archive/master.zip -L -o /tmp/swagger.zip 
+    yum install -y unzip
+    rm -fr /tmp/swagger/
+    unzip /tmp/swagger.zip -d /tmp/swagger/
+    cd /tmp/swagger/tornado-swagger-master
+    python setup.py install
+
+    # Python MySQL things
+    pip install MySQL-python
+    pip install DBUtils
+    pip install coverage
+
+else
+    apt-get install -y wget unzip
+    apt-get install -y python-pip
+    apt-get install -y python-ncclient
+    apt-get install -y libmysqlclient-dev
+
+    pip install bottle
+    pip install paste
+    pip install pygments
+    pip install eventfd
+
+    # swagger
+    curl https://github.com/SerenaFeng/tornado-swagger/archive/master.zip -L -o /tmp/swagger.zip 
+    rm -fr /tmp/swagger/
+    unzip /tmp/swagger.zip -d /tmp/swagger/
+    cd /tmp/swagger/tornado-swagger-master
+    python setup.py install
+
+    # Python MySQL things
+    pip install MySQL-python
+    pip install DBUtils
+    pip install coverage
+fi
 

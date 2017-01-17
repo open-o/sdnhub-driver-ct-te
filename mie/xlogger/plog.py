@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  Copyright 2016 China Telecommunication Co., Ltd.
+#  Copyright 2016-2017 China Telecommunication Co., Ltd.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@
 import os
 import sys
 import ctypes
-import traceback
 import datetime
 from bprint import cp
 
@@ -38,7 +37,7 @@ class KLog(object):
     KLOG_INFO = ctypes.c_uint(0x00000040)
     KLOG_DEBUG = ctypes.c_uint(0x00000080)
 
-    filepath = "/dev/stdout"
+    _filepath = "/dev/stdout"
 
     _to_stderr = False
     _to_stdout = True
@@ -75,8 +74,9 @@ class KLog(object):
         path = path.replace("%I", "0000")
         path = path.replace("%U", os.environ.get("USER"))
 
-        cls.filepath = path
-        cls.logfile = open(cls.filepath, "a")
+        cls._filepath = path
+        cls._logfile = open(cls._filepath, "a")
+        print(cls._logfile)
 
     @classmethod
     def to_network(cls, addr="127.0.0.1", port=7777, enable=True):
@@ -85,15 +85,8 @@ class KLog(object):
     def __init__(self, frame):
         pass
 
-    def check(self, mask):
-        pass
-
     @classmethod
-    def getinf(cls, frame, fn, ln):
-        pass
-
-    @classmethod
-    def _log(cls, indi, mask, *str_segs):
+    def _log(cls, indi, mask, nl, *str_segs):
         now = datetime.datetime.now()
 
         frame = sys._getframe(2)
@@ -114,8 +107,9 @@ class KLog(object):
                     s = seg.encode("utf-8")
             fullstr += s
 
-        line = "|%s|%s|%s|%s|%s| %s\n" % (cp.r(indi), cp.y(ts),
-                _x_fn, cp.c(_x_func), cp.c(_x_ln), fullstr)
+        nl = "\n" if nl else ""
+        line = "|%s|%s|%s|%s|%s| %s%s" % (cp.r(indi), cp.y(ts),
+                _x_fn, cp.c(_x_func), cp.c(_x_ln), fullstr, nl)
 
         if cls._to_stderr:
             sys.stderr.write(line)
@@ -125,51 +119,51 @@ class KLog(object):
             sys.stdout.flush()
 
         if cls._to_file:
-            sys.logfile.write(line)
-            sys.logfile.flush()
+            cls._logfile.write(line)
+            cls._logfile.flush()
 
         if cls._to_network:
             pass
 
     @classmethod
-    def fatal(cls, *str_segs):
-        KLog._log('F', cls.KLOG_FATAL, *str_segs)
+    def f(cls, *str_segs):
+        '''fatal'''
+        KLog._log('F', cls.KLOG_FATAL, True, *str_segs)
 
     @classmethod
-    def alert(cls, *str_segs):
-        KLog._log('A', cls.KLOG_ALERT, *str_segs)
+    def a(cls, *str_segs):
+        '''alert'''
+        KLog._log('A', cls.KLOG_ALERT, True, *str_segs)
 
     @classmethod
-    def critical(cls, *str_segs):
-        KLog._log('C', cls.KLOG_CRIT, *str_segs)
+    def c(cls, *str_segs):
+        '''critical'''
+        KLog._log('C', cls.KLOG_CRIT, True, *str_segs)
 
     @classmethod
-    def error(cls, *str_segs):
-        KLog._log('E', cls.KLOG_ERR, *str_segs)
+    def e(cls, *str_segs):
+        '''error'''
+        KLog._log('E', cls.KLOG_ERR, True, *str_segs)
 
     @classmethod
-    def warning(cls, *str_segs):
-        KLog._log('W', cls.KLOG_WARNING, *str_segs)
+    def w(cls, *str_segs):
+        '''warning'''
+        KLog._log('W', cls.KLOG_WARNING, True, *str_segs)
 
     @classmethod
-    def info(cls, *str_segs):
-        KLog._log('I', cls.KLOG_INFO, *str_segs)
+    def i(cls, *str_segs):
+        '''info'''
+        KLog._log('I', cls.KLOG_INFO, True, *str_segs)
 
     @classmethod
-    def notice(cls, *str_segs):
-        KLog._log('N', cls.KLOG_NOTICE, *str_segs)
+    def n(cls, *str_segs):
+        '''notice'''
+        KLog._log('N', cls.KLOG_NOTICE, True, *str_segs)
 
     @classmethod
-    def debug(cls, *str_segs):
-        KLog._log('D', cls.KLOG_DEBUG, *str_segs)
+    def d(cls, *str_segs):
+        '''debug'''
+        KLog._log('D', cls.KLOG_DEBUG, True, *str_segs)
 
 
 klog = KLog
-klog.f = KLog.fatal
-klog.a = KLog.alert
-klog.c = KLog.critical
-klog.e = KLog.error
-klog.w = KLog.warning
-klog.i = KLog.info
-klog.n = KLog.notice
-klog.d = KLog.debug

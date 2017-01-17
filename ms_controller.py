@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-#  Copyright 2016 China Telecommunication Co., Ltd.
+#  Copyright 2016-2017 China Telecommunication Co., Ltd.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-
-from sqlite3 import Time
-
 
 from jsonrpc import *
 from microsrvurl import *
@@ -44,8 +41,9 @@ import httplib
 import urlparse
 import sys
 
-from ctrl_huawei.bprint import varprt, varfmt
-from ctrl_huawei.xlogger import *
+from ctrl_huawei import huawei
+from xlogger import klog
+from bprint import varfmt
 
 __author__ = 'Siag'
 
@@ -61,11 +59,13 @@ microsrv_te_lsp_man_url = microsrvurl_dict['te_lsp_man_url'] #'http://10.9.63.14
 microsrv_te_flow_man_url = microsrvurl_dict['te_flow_sched_url'] #'http://10.9.63.140:32773/'
 microsrv_status_check_times = 30
 microsrv_status_check_duration = 5
+'''
 microsrv_equip_map = {
-    "UID_HUAWEI": {
+
+    "UID_HUAWEI_5_5_5_5": {
         "community": "ctbri",
-        "ip_str": "14.14.14.14",
-        "name": "PE14_HUAWEI",
+        "ip_str": "5.5.5.5",
+        "name": "NAME_HUAWEI_5_5_5_5",
         "ports": [
             {
                 "capacity": 1000,
@@ -77,11 +77,134 @@ microsrv_equip_map = {
                 "uid": "1"
             }
         ],
-        "uid": "UID_HUAWEI",
+        "uid": "UID_HUAWEI_5_5_5_5",
         "vendor": "HUAWEI",
         "x": 0.0,
         "y": 150.0
     },
+
+
+
+    "UID_HUAWEI_1_1_1_1": {
+        "community": "ctbri",
+        "ip_str": "1.1.1.1",
+        "name": "NAME_HUAWEI_1_1_1_1",
+        "ports": [
+            {
+                "capacity": 1000,
+                "if_index": 0,
+                "if_name": "xgei-0/0/0/3",
+                "ip_str": "10.0.140.14",
+                "mac": "00-00-0A-00-8C-0E",
+                "type": 0,
+                "uid": "1"
+            }
+        ],
+        "uid": "UID_HUAWEI_1_1_1_1",
+        "vendor": "HUAWEI",
+        "x": 0.0,
+        "y": 150.0
+    },
+
+
+
+    "UID_HUAWEI_3_3_3_3": {
+        "community": "ctbri",
+        "ip_str": "3.3.3.3",
+        "name": "NAME_HUAWEI_3_3_3_3",
+        "ports": [
+            {
+                "capacity": 1000,
+                "if_index": 0,
+                "if_name": "xgei-0/0/0/3",
+                "ip_str": "10.0.140.14",
+                "mac": "00-00-0A-00-8C-0E",
+                "type": 0,
+                "uid": "1"
+            }
+        ],
+        "uid": "UID_HUAWEI_3_3_3_3",
+        "vendor": "HUAWEI",
+        "x": 0.0,
+        "y": 150.0
+    },
+
+
+    "UID_HUAWEI_4_4_4_4": {
+        "community": "ctbri",
+        "ip_str": "4.4.4.4",
+        "name": "NAME_HUAWEI_4_4_4_4",
+        "ports": [
+            {
+                "capacity": 1000,
+                "if_index": 0,
+                "if_name": "xgei-0/0/0/3",
+                "ip_str": "10.0.140.14",
+                "mac": "00-00-0A-00-8C-0E",
+                "type": 0,
+                "uid": "1"
+            }
+        ],
+        "uid": "UID_HUAWEI_4_4_4_4",
+        "vendor": "HUAWEI",
+        "x": 0.0,
+        "y": 150.0
+    },
+
+
+
+
+
+    "UID_HUAWEI_2_2_2_2": {
+        "community": "ctbri",
+        "ip_str": "2.2.2.2",
+        "name": "NAME_HUAWEI_2_2_2_2",
+        "ports": [
+            {
+                "capacity": 1000,
+                "if_index": 0,
+                "if_name": "xgei-0/0/0/3",
+                "ip_str": "10.0.140.14",
+                "mac": "00-00-0A-00-8C-0E",
+                "type": 0,
+                "uid": "1"
+            }
+        ],
+        "uid": "UID_HUAWEI_2_2_2_2",
+        "vendor": "HUAWEI",
+        "x": 0.0,
+        "y": 150.0
+    },
+
+
+
+
+
+    "UID_HUAWEI_6_6_6_6": {
+        "community": "ctbri",
+        "ip_str": "6.6.6.6",
+        "name": "NAME_HUAWEI_6_6_6_6",
+        "ports": [
+            {
+                "capacity": 1000,
+                "if_index": 0,
+                "if_name": "xgei-0/0/0/3",
+                "ip_str": "10.0.140.14",
+                "mac": "00-00-0A-00-8C-0E",
+                "type": 0,
+                "uid": "1"
+            }
+        ],
+        "uid": "UID_HUAWEI_6_6_6_6",
+        "vendor": "HUAWEI",
+        "x": 0.0,
+        "y": 150.0
+    },
+
+
+
+
+
     "1": {
         "community": "ctbri",
         "ip_str": "14.14.14.14",
@@ -575,7 +698,56 @@ microsrv_equip_map = {
         "y": 225.0
     }
 }
+'''
+microsrv_equip_map = {
+    "1": {"vendor": "Huawei", "uid": "1", "community": "ctbri", "ip_str": "3.3.3.3", "y": 180.0, "x": 85.0, "model": "NE5000E", "ports": [{"if_index": 0, "uid": "1", "if_name": "G1/0/1", "mac": "94-04-9C-DE-EE-2A", "ip_str": "10.230.10.1", "type": 0}, {"if_index": 1, "uid": "2", "if_name": "G1/0/3", "mac": "94-04-9C-DE-EE-2C", "ip_str": "10.230.10.5", "type": 0}, {"if_index": 6, "uid": "50", "if_name": "G1/2/0", "mac": "94-04-9C-DE-EC-F1", "ip_str": "10.230.10.13", "type": 0}], "name": "Nanjing"},
+    "3": {"vendor": "Huawei", "uid": "3", "community": "ctbri", "ip_str": "11.11.11.11", "y": 180.0, "x": 330.0, "model": "NE5000E", "ports": [{"if_index": 4, "uid": "14", "if_name": "G1/0/0", "mac": "94-04-9C-DE-EC-F1", "ip_str": "10.230.10.10", "type": 0}, {"if_index": 5, "uid": "15", "if_name": "G1/0/10", "mac": "94-04-9C-DE-EC-F1", "ip_str": "10.230.10.6", "type": 0}, {"if_index": 8, "uid": "52", "if_name": "G1/2/0", "mac": "94-04-9C-DE-EC-F1", "ip_str": "10.230.10.21", "type": 0}, {"if_index": 15, "uid": "59", "if_name": "G1/2/2", "mac": "94-04-9C-DE-EC-F1", "ip_str": "10.230.10.29", "type": 0}], "name": "Shanghai"},
+    "2": {"vendor": "Huawei", "uid": "2", "community": "ctbri", "ip_str": "1.1.1.1", "y": 60.0, "x": 215.0, "model": "NE5000E", "ports": [{"if_index": 2, "uid": "3", "if_name": "G1/0/10", "mac": "94-04-9C-DE-EE-03", "ip_str": "10.230.10.2", "type": 0}, {"if_index": 3, "uid": "13", "if_name": "G1/0/0", "mac": "94-04-9C-DE-ED-F9", "ip_str": "10.230.10.9", "type": 0}, {"if_index": 7, "uid": "51", "if_name": "G1/2/0", "mac": "94-04-9C-DE-EC-F1", "ip_str": "10.230.10.20", "type": 0}, {"if_index": 14, "uid": "58", "if_name": "G1/2/1", "mac": "94-04-9C-DE-EC-F1", "ip_str": "10.230.10.25", "type": 0}], "name": "Wuhan"},
+    "5": {"vendor": "Huawei", "uid": "5", "community": "ctbri", "ip_str": "5.5.5.5", "y": 60.0, "x": 400.0, "model": "NE40E", "ports": [{"if_index": 12, "uid": "56", "if_name": "G3/0/0", "mac": "94-04-9C-DE-EC-F1", "ip_str": "10.230.10.26", "type": 0}, {"if_index": 13, "uid": "57", "if_name": "G3/0/1", "mac": "94-04-9C-DE-EC-F1", "ip_str": "10.230.10.30", "type": 0}], "name": "Beijing"},
+    "4": {"vendor": "Huawei", "uid": "4", "community": "ctbri", "ip_str": "4.4.4.4", "y": 240.0, "x": 215.0, "model": "NE5000E", "ports": [{"if_index": 9, "uid": "53", "if_name": "G1/0/1", "mac": "94-04-9C-DE-EC-F1", "ip_str": "10.230.10.14", "type": 0}, {"if_index": 10, "uid": "54", "if_name": "G1/0/2", "mac": "94-04-9C-DE-EC-F1", "ip_str": "10.230.10.18", "type": 0}, {"if_index": 11, "uid": "55", "if_name": "G1/0/3", "mac": "94-04-9C-DE-EC-F1", "ip_str": "10.230.10.22", "type": 0}], "name": "Guangzhou"}}
+microsrv_vlink_map = {
+    "11": {"dport": "3", "delay": 33.0, "bandwidth": 1000000000.0, "sport": "1", "uid": "11"},
+    "59": {"dport": "55", "delay": 5.0, "bandwidth": 1000000000.0, "sport": "52", "uid": "59"},
+    "58": {"dport": "51", "delay": 5.0, "bandwidth": 1000000000.0, "sport": "54", "uid": "58"},
+    "55": {"dport": "53", "delay": 5.0, "bandwidth": 1000000000.0, "sport": "50", "uid": "55"},
+    "54": {"dport": "13", "delay": 5.0, "bandwidth": 1000000000.0, "sport": "14", "uid": "54"},
+    "31": {"dport": "1", "delay": 5.0, "bandwidth": 1000000000.0, "sport": "3", "uid": "31"},
+    "56": {"dport": "50", "delay": 2000.0, "bandwidth": 1000000000.0, "sport": "53", "uid": "56"},
+    "51": {"dport": "15", "delay": 5.0, "bandwidth": 1000000000.0, "sport": "2", "uid": "51"},
+    "53": {"dport": "14", "delay": 5.0, "bandwidth": 1000000000.0, "sport": "13", "uid": "53"},
+    "52": {"dport": "2", "delay": 5.0, "bandwidth": 1000000000.0, "sport": "15", "uid": "52"},
+    "60": {"dport": "52", "delay": 5.0, "bandwidth": 1000000000.0, "sport": "55", "uid": "60"},
+    "61": {"dport": "58", "delay": 5.0, "bandwidth": 1000000000.0, "sport": "56", "uid": "61"},
+    "62": {"dport": "56", "delay": 5.0, "bandwidth": 1000000000.0, "sport": "58", "uid": "62"},
+    "63": {"dport": "59", "delay": 5.0, "bandwidth": 1000000000.0, "sport": "57", "uid": "63"},
+    "64": {"dport": "57", "delay": 5.0, "bandwidth": 1000000000.0, "sport": "59", "uid": "64"},
+    "57": {"dport": "54", "delay": 5.0, "bandwidth": 1000000000.0, "sport": "51", "uid": "57"}}
 
+
+microsrv_equip_port_uid_ip_map = {
+    "59": "11.11.11.11&10.230.10.29",
+    "58": "1.1.1.1&10.230.10.25",
+    "13": "1.1.1.1&10.230.10.9",
+    "15": "11.11.11.11&10.230.10.6",
+    "14": "11.11.11.11&10.230.10.10",
+    "55": "4.4.4.4&10.230.10.22",
+    "54": "4.4.4.4&10.230.10.18",
+    "57": "5.5.5.5&10.230.10.30",
+    "56": "5.5.5.5&10.230.10.26",
+    "51": "1.1.1.1&10.230.10.20",
+    "50": "3.3.3.3&10.230.10.13",
+    "53": "4.4.4.4&10.230.10.14",
+    "52": "11.11.11.11&10.230.10.21",
+    "1": "3.3.3.3&10.230.10.1",
+    "3": "1.1.1.1&10.230.10.2",
+    "2": "3.3.3.3&10.230.10.5"}
+
+
+microsrv_equip_loopback_uid_map = {"11.11.11.11": "3", "4.4.4.4": "4", "5.5.5.5": "5","3.3.3.3": "1", "1.1.1.1": "2"}
+
+microsrv_equip_loopback_port_map = {"11.11.11.11": 18011, "4.4.4.4": 18004, "5.5.5.5": 18005, "3.3.3.3": 18003, "1.1.1.1": 18001}
+
+'''
 microsrv_equip_loopback_uid_map = {
     "1.1.1.1": "9",
     "11.11.11.11": "2",
@@ -588,9 +760,13 @@ microsrv_equip_loopback_uid_map = {
     "24.24.24.24": "5",
     "3.3.3.3": "10",
     "4.4.4.4": "11",
-    "6.6.6.6": "12"
-}
+    "6.6.6.6": "12",
 
+    "1.1.1.1": "UID_HUAWEI_1_1_1_1",
+    "5.5.5.5": "UID_HUAWEI_5_5_5_5",
+    "3.3.3.3": "UID_HUAWEI_3_3_3_3",
+}
+'''
 
 # Not Scheduled(-1), scheduling(0), scheduled(1), De-scheduling(2)
 microsrv_flow_status_map = {"active":1, "no_scheduled":-1}
@@ -743,7 +919,6 @@ class base_controller(object):
         pass
 
     pass
-
 
 class juniper_controller(base_controller):
     def __init__(self):
@@ -1881,37 +2056,9 @@ class alu_controller(base_controller):
         return {} #resp.body
         pass
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ### #####################################################################
 # Hwawee
 #
-from ctrl_huawei import huawei
 
 class huawei_controller(base_controller):
     def __init__(self):
@@ -1922,42 +2069,67 @@ class huawei_controller(base_controller):
         self.method = None
 
         self.map_cmd_cls = {
-            "ms_controller_add_lsp": huawei.TunnelCreate,
+            # "ms_controller_add_lsp": huawei.TunnelCreate,
+            "ms_controller_add_lsp": huawei.TunnelCreate_netconf,
+            "ms_controller_del_lsp": huawei.TunnelDelete_netconf,
+            "ms_controller_check_lsp": huawei.TunnelStatusCheck,
+            "ms_controller_confirm_lsp": huawei.TunnelConfirm,
             "ms_controller_update_lsp": huawei.TunnelModify,
-            "ms_controller_del_lsp": huawei.TunnelDelete,
             "ms_controller_get_lsp": huawei.TunnelQuery,
+            "ms_controller_add_flow": huawei.RedirectToTunnel,
+            "ms_controller_del_flow": huawei.UndoRedirectToTunnel,
+            "ms_controller_check_flow": huawei.RedirectToTunnelStatusCheck,
+            "ms_controller_add_rule": huawei.AddRule2RedirectedTunnel,
+            "ms_controller_config_link": huawei.LinkConfig_netconf,
+            "ms_controller_set_vlink_delay": huawei.LinkDelayConfig,
         }
 
-        huawei.einfo.set_map(microsrv_equip_map, microsrv_equip_loopback_uid_map)
+        huawei.einfo.set_map(microsrv_equip_map, microsrv_equip_loopback_uid_map, microsrv_equip_loopback_port_map)
 
     @tornado.gen.coroutine
     def do_query(self, req, e_need_fresh, e_fresh_suc):
         cmd = req['request']
         cls = self.map_cmd_cls.get(cmd)
 
-        resp = huawei.call(cls, req)
-        klog.d(varfmt(resp, "RESP"))
+        klog.d("req: ", varfmt(req, None, True))
 
-        result = {
-            "err_code": 0,
-            "msg": resp.toDict()
-        }
-        return result
+        if (cmd == 'ms_controller_add_lsp' and 'priority' not in req['args']):
+            req['args']['priority'] = 7
 
+        err, msg, res = huawei.call(cls, req) if cls else (-1, "Command not found", None)
 
+        klog.d("ERR: ", err)
+        klog.d("MSG: ", msg)
+        klog.d("RES: ", varfmt(res, "Response", True))
+        #need check lsp create status
+        if (err == 0):
+            if (cmd == 'ms_controller_add_lsp'):
+                print('ms_controller_check_lsp')
+                check_req = dict.copy(req)
+                check_req['request'] = "ms_controller_check_lsp"
+                tornado.ioloop.IOLoop.instance().add_timeout(datetime.timedelta(seconds=microsrv_status_check_duration), ms_controller_add_lsp_status_check, 0, check_req, None)
+                pass
+            elif (cmd == 'ms_controller_add_flow'):
+                print('ms_controller_check_flow')
+                check_req = dict.copy(req)
+                check_req['request'] = "ms_controller_check_flow"
+                tornado.ioloop.IOLoop.instance().add_timeout(datetime.timedelta(seconds=microsrv_status_check_duration), ms_controller_add_flow_status_check, 0, check_req, None)
+                pass
+            return res
+        else:
+            result = {
+                "err_code": -1,
+                "msg": msg
+            }
+            return result
 
 controller_vendor_map = {
     'JUNIPER': juniper_controller,
     'CISCO': cisco_controller,
     'ZTE': zte_controller,
     'ALU': alu_controller,
-    'HUAWEI': huawei_controller,
+    'Huawei': huawei_controller,
 }
-
-
-
-
-
 
 @tornado.gen.coroutine
 def ms_controller_add_lsp_status_check(times, req, resp):
@@ -2000,7 +2172,7 @@ def ms_controller_add_lsp_status_check(times, req, resp):
             else:
                 tornado.ioloop.IOLoop.instance().add_timeout(datetime.timedelta(seconds=microsrv_status_check_duration), ms_controller_add_lsp_status_check, times, req, resp)
                 pass
-    else:
+    elif(times == microsrv_status_check_times):
         #return to callback
         print('return to callback')
         lsp_item = dict.copy(microsrv_lsp_template)
@@ -2015,6 +2187,10 @@ def ms_controller_add_lsp_status_check(times, req, resp):
             resp = yield vendor_ctrler.do_pure_query(req_url,'POST',json.dumps(request_data['args']))
         else:
             resp = yield vendor_ctrler.do_pure_query(req_url,'POST',json.dumps(request_data))
+        pass
+    else:
+        print('continue to check')
+        tornado.ioloop.IOLoop.instance().add_timeout(datetime.timedelta(seconds=microsrv_status_check_duration), ms_controller_add_lsp_status_check, times, req, resp)
         pass
 
     pass
@@ -2293,7 +2469,9 @@ class base_handler(tornado.web.RequestHandler):
             huawei_ctrler.form_method(req)
             huawei_ctrler.form_request(req)
             huawei_result = yield huawei_ctrler.do_query(req, e_need_fresh, e_fresh_suc)
-        except:
+        except Exception, data:
+            traceback.print_exc()
+            print str(Exception) + ':' + str(data)
             huawei_result = []
             pass
 
@@ -2331,7 +2509,10 @@ class base_handler(tornado.web.RequestHandler):
         # merge all vendors' result
 
         try:
-            result['lsps'].append(huawei_result["msg"]["lsps"])
+            # result['lsps'].append(huawei_result["msg"]["lsps"])
+            if (huawei_result != None and 'lsps' in huawei_result["msg"]):
+                for lsp_item in huawei_result["msg"]["lsps"]:
+                    result['lsps'].append(lsp_item)
         except:
             pass
 
@@ -2381,13 +2562,44 @@ class base_handler(tornado.web.RequestHandler):
             for equip_item in req['args']['equips']:
                 microsrv_equip_map[equip_item['uid']] = equip_item
                 microsrv_equip_loopback_uid_map[equip_item['ip_str']] = equip_item['uid']
+                if ('ports' in equip_item and  equip_item['ports'].__len__() > 0):
+                    for equip_port_item in equip_item['ports']:
+                        microsrv_equip_port_uid_ip_map[equip_port_item['uid']] = equip_item['ip_str'] + '&' + equip_port_item['ip_str']
         print(json.dumps(microsrv_equip_map))
         print(json.dumps(microsrv_equip_loopback_uid_map))
+        print(json.dumps(microsrv_equip_port_uid_ip_map))
+
+        if ('vlinks' in req['args'] and  req['args']['vlinks'].__len__() > 0):
+            microsrv_vlink_map.clear()
+            for vlink_item in req['args']['vlinks']:
+                microsrv_vlink_map[vlink_item['uid']] = vlink_item
+        print(json.dumps(microsrv_vlink_map))
+
         result['err_code'] = 0
         result['msg'] = 'set equips finished'
         return result
 
-    pass
+    @tornado.gen.coroutine
+    def do_set_vlink_delay(self, req):
+        # {'args': {'vlinks': [{'delay': '20', 'uid': '11'}]}, 'request': 'ms_controller_set_vlink_delay', 'ts': '20161228160506', 'trans_id': 1482912306}
+        result = {'msg':''}
+        err_code = 0
+        if ('vlinks' in req['args'] and  req['args']['vlinks'].__len__() > 0):
+            for vlink_item in req['args']['vlinks']:
+                sub_req = {}
+                vlink_item['from_router_uid'] = \
+                    microsrv_equip_loopback_uid_map[microsrv_equip_port_uid_ip_map[microsrv_vlink_map[vlink_item['uid']]['sport']].split('&')[0]]
+                vlink_item['id'] = microsrv_equip_port_uid_ip_map[microsrv_vlink_map[vlink_item['uid']]['sport']]\
+                                   + '_' \
+                                   + microsrv_equip_port_uid_ip_map[microsrv_vlink_map[vlink_item['uid']]['dport']]
+                sub_req['args'] = vlink_item
+                sub_req['request'] = req['request']
+                sub_result = yield self.do_dispatch_vendor_req(sub_req, None, None)
+                if (sub_result != None):
+                    err_code = sub_result['err_code'] if 'err_code' in sub_result else 0
+                    result['err_code'] = err_code
+                    result['msg']= str(result['msg']) + 'set vlink ' + str(vlink_item['uid']) + ' delay ' + ('ok;' if err_code == 0 else 'fail;')
+        raise tornado.gen.Return(result)
 
 class controller_handler(base_handler):
     '''
@@ -2402,9 +2614,13 @@ class controller_handler(base_handler):
                            'ms_controller_del_lsp': False,
                            'ms_controller_update_lsp': False,
                            'ms_controller_add_lsp' : False,
+                           'ms_controller_confirm_lsp' : False,
                            'ms_controller_del_flow' : False,
                            'ms_controller_get_flow' : False,
                            'ms_controller_add_flow' : False,
+                           'ms_controller_add_rule' : False,
+                           'ms_controller_config_link' : False,
+                           'ms_controller_set_vlink_delay' : False,
                            'ms_controller_set_equips':False}
         pass
 
@@ -2431,12 +2647,16 @@ class controller_handler(base_handler):
                 resp = {}
                 resp['err_code'] = -1
                 resp['msg'] = 'Unrecognised method'
+                print('>>> ' + str(resp))
                 self.write(json.dumps(resp))
                 self.finish()
                 return
             result = None
             if (req['request'] and req['request'] == 'ms_controller_set_equips'):
-                self.do_set_equips_request(req)
+                result = self.do_set_equips_request(req)
+                pass
+            elif (req['request'] and req['request'] == 'ms_controller_set_vlink_delay'):
+                result = yield self.do_set_vlink_delay(req)
                 pass
             elif (self.req_method_map[req['request']] and 'uid' not in req['args']):
                 print('do_all_vendors_req')
@@ -2903,6 +3123,7 @@ def strip_parse_from_argv():
     microsrvurl_dict['openo_brs_url'] = te_protocol + options.msburl + openo_brs_url_prefix
 
     pass
+
 
 if __name__ == '__main__':
     strip_parse_from_argv()

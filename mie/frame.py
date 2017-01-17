@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 #  Copyright 2016-2017 China Telecommunication Co., Ltd.
 #
@@ -15,6 +16,20 @@
 #  limitations under the License.
 #
 
-BASEDIR=$(dirname $(readlink -f $0))
-PROC_UNIQ_KEY=`grep "PROC_UNIQ_KEY=" ${BASEDIR}/run.sh | awk -F= '{print $2}' | sed 's/[[:space:]]//g'`
-pgrep python -a | grep "uniq=${PROC_UNIQ_KEY}" | awk '{print $1}' | xargs kill -9
+import sys
+
+### ###########################################################
+# Get frame with depth
+#
+
+
+def frame(depth=-1):
+    depth_all = 1
+    while True:
+        try:
+            sys._getframe(depth_all)
+            depth_all += 1
+        except:
+            break
+
+    return sys._getframe((depth_all + depth) % depth_all)
