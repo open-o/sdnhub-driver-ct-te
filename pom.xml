@@ -24,7 +24,7 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.openo.sdno.driver-ct-te</groupId>
+    <groupId>org.openo.sdnhub.driver-ct-te</groupId>
     <artifactId>ct_tedriver</artifactId>
     <packaging>pom</packaging>
     <name>sdno-driver-ct-te</name>

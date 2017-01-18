@@ -1,4 +1,4 @@
 [gerrit]
 host=gerrit.open-o.org
 port=29418
-project=sdno-driver-ct-te.git
+project=sdnhub-driver-ct-te.git
