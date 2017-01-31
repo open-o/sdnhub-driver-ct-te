@@ -27,7 +27,7 @@
     <groupId>org.openo.sdnhub.driver-ct-te</groupId>
     <artifactId>ct_tedriver</artifactId>
     <packaging>pom</packaging>
-    <name>sdno-driver-ct-te</name>
+    <name>sdnhub-driver-ct-te</name>
     <description>Traffic Engineering Driver</description>
     <build>
       <defaultGoal>package</defaultGoal>
