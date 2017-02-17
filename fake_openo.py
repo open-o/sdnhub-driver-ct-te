@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 #  Copyright 2016-2017 China Telecommunication Co., Ltd.
@@ -156,6 +156,8 @@ class driver_handler(base_handler):
                          }
                        ]
           }]
+
+        serv = [{"driverInfo": {"protocol": "REST", "instanceID": "sdno-driver-ct-te_ID", "ip": "127.0.0.1", "driverName": "sdno-driver-ct-te", "services": [{"support_sys": [{"version": "v1", "type": "ct_te_driver"}], "service_url": "/openoapi/sdno-driver-ct-te/v1/"}], "port": 8670}}]
         print 'Fake Open-O driver: Returned get \n'
         print(json.dumps(serv))
         self.write(json.dumps(serv))

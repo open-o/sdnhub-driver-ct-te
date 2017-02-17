@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 #  Copyright 2016-2017 China Telecommunication Co., Ltd.
@@ -23,9 +23,12 @@ from base_handler import *
 import time
 import os
 import subprocess
-driver_serv_cmd = 'coverage run --parallel-mode ms_controller.py'
-test_serv_cmd = 'coverage run --parallel-mode test.py'
-fake_openo_serv_cmd = 'coverage run --parallel-mode fake_openo.py'
+driver_serv_cmd = 'coverage run --parallel-mode --source=./ --omit=my_unittest_driver.py,fake_openo.py,db_util.py,test.py,base_handler.py ms_controller.py'
+test_serv_cmd = 'python test.py'
+fake_openo_serv_cmd = 'python fake_openo.py'
+# driver_serv_cmd = 'coverage run --parallel-mode ms_controller.py'
+# test_serv_cmd = 'coverage run --parallel-mode test.py'
+# fake_openo_serv_cmd = 'coverage run --parallel-mode fake_openo.py'
 # tunnel_server_cmd = 'coverage run --parallel-mode tunnel_server.py'
 # cus_server_cmd = 'coverage run --parallel-mode customer_server.py'
 # ms_controller_cmd = 'coverage run --parallel-mode ms_controller.py'

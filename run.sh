@@ -26,4 +26,10 @@ OPTS+=" --uniq=${PROC_UNIQ_KEY}"
 OPTS+=" --msburl=${MSB_ADDRESS}"
 OPTS+=" --localurl=${SDNO_DRIVER_CT_TE_ADDRESS}"
 
-nohup python ${BASEDIR}/ms_controller.py ${OPTS} &> /dev/null &
+if [ "$CSIT" == "True" ]; then 
+    nohup coverage run --parallel-mode  ${BASEDIR}/ms_controller.py ${OPTS}  &
+    nohup python ${BASEDIR}/test.py ${OPTS}  &
+else
+    nohup python ${BASEDIR}/ms_controller.py ${OPTS}  &
+fi
+

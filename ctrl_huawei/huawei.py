@@ -1980,7 +1980,7 @@ if platform.system() == "Linux":
         return call(NeOper_All)
 
     @callman.deccmd()
-    def LspInfos(cmdctx, calldic):
+    def LspInfos_(cmdctx, calldic):
         return call(LspInfos)
 
     @callman.deccmd()
@@ -2119,8 +2119,8 @@ def bottleServ(cookie):
     run(server='paste', host='0.0.0.0', port=10001, debug=True)
 
 
-import deferdo
-deferdo.DeferDo(bottleServ)
+# import deferdo
+# deferdo.DeferDo(bottleServ)
 
 if __name__ == "__main__":
     sys.path.append(miedir + "/..")
