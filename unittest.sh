@@ -73,6 +73,8 @@ if [ "$RES" == "" ]; then
     pip install tornado
     pip install bottle
     pip install paste
+    pip install pygments
+    pip install eventfd
 
     # Download and install the swagger module
     curl https://github.com/SerenaFeng/tornado-swagger/archive/master.zip -L -o /tmp/swagger.zip 
@@ -93,6 +95,12 @@ else
     apt-get install -y python-ncclient
     apt-get install -y libmysqlclient-dev
 
+    ##
+    ## Others
+    ##
+
+    pip install epydoc
+    pip install tornado
     pip install bottle
     pip install paste
     pip install pygments
