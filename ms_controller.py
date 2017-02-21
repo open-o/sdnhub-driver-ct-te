@@ -52,7 +52,7 @@ DEFAULT_REPRESENTATION = "application/json"
 HTTP_BAD_REQUEST = 400
 HTTP_FORBIDDEN = 403
 HTTP_NOT_FOUND = 404
-openapi_swagger_prefix_uri = r'/openoapi/sdno-driver-ct-te/v1/'
+openapi_swagger_prefix_uri = r'/openoapi/sdnhub-driver-ct-te/v1/'
 swagger.docs()
 
 microsrv_te_lsp_man_url = microsrvurl_dict['te_lsp_man_url'] #'http://10.9.63.140:32772/'
@@ -2769,7 +2769,7 @@ class swagger_handler(base_handler):
     def form_request(self):
         req = {}
         req_body = {} if self.request.body.__len__() == 0 else json.loads(self.request.body)
-        req_action  = self.request.path[self.request.path.index(':') + 1:] #(path[path.index(':') + 1:])'/openoapi/sdno-driver-ct-te/v1/nodes:set-nodes'
+        req_action  = self.request.path[self.request.path.index(':') + 1:] #(path[path.index(':') + 1:])'/openoapi/sdnhub-driver-ct-te/v1/nodes:set-nodes'
         req['request'] = self.req_method_map[req_action]
         req['args'] = req_body
         req['trans_id'] = int(time.time())
@@ -3084,7 +3084,7 @@ class handler_create_link(swagger_handler):
 
 def make_swagger_app():
     '''
-    Driver  /openoapi/sdno-driver-ct-te/v1/
+    Driver  /openoapi/sdnhub-driver-ct-te/v1/
     * POST nodes:set-nodes
     * POST lsps:get-lsp
     * POST lsps:delete-lsp
@@ -3138,6 +3138,6 @@ if __name__ == '__main__':
     tornado.ioloop.IOLoop.instance().add_timeout(datetime.timedelta(milliseconds=100), juniper_token_refresh, juniper_need_refresh, juniper_refresh_suc)
     tornado.ioloop.IOLoop.instance().add_timeout(
                         datetime.timedelta(milliseconds=500),
-                        openo_driver_register, 'sdno-driver-ct-te', 'sdno-driver-ct-te_ID', 'v1', openapi_swagger_prefix_uri,
+                        openo_driver_register, 'sdnhub-driver-ct-te', 'sdnhub-driver-ct-te_ID', 'v1', openapi_swagger_prefix_uri,
                         microsrvurl_dict['te_driver_rest_host'],  microsrvurl_dict['te_driver_rest_port'], 'ct_te_driver')
     tornado.ioloop.IOLoop.instance().start()
