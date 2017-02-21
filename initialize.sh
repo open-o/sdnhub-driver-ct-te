@@ -17,10 +17,26 @@
 
 BASEDIR=$(dirname $(readlink -f $0))
 
+while [ "$DEBUG" == "1" ]; do
+    echo "========================"
+    echo "= DEBUG LOOP           ="
+    echo "========================"
+    if [ -e "/tmp/debug.bye" ]; then
+        echo "Exit debug loop"
+        break
+    fi
+    sleep 60
+    if [ -e "/tmp/debug.sh" ]; then
+        chmod +x /tmp/debug.sh
+        sh /tmp/debug.sh
+    fi
+done
+
+
 #
 # Python
 #
-	
+
 ##
 ## Prepare
 ##
@@ -34,19 +50,19 @@ yum install -y libxml2
 yum install -y libxslt
 
 yum install -y libxslt-devel
-yum install -y gcc 
+yum install -y gcc
 
 yum install -y python-devel
 yum install -y libffi
 yum install -y libffi-devel
-yum install -y openssl-devel 
+yum install -y openssl-devel
 
 pip install setuptools
-   
+
 ##
 ## Ensure packages are latest version
 ##
-# pip list | awk '{print $1}' | xargs pip install -U 
+# pip list | awk '{print $1}' | xargs pip install -U
 pip install -U setuptools
 
 ##
@@ -60,7 +76,7 @@ tar xvf /tmp/ncclient.tar.gz
 FOLDERNAME=`tar tvf /tmp/ncclient.tar.gz  | head  -n 1 | awk '{print $NF}'`
 cd $FOLDERNAME
 
-python setup.py install 
+python setup.py install
 
 
 ##
@@ -76,12 +92,17 @@ pip install eventfd
 
 
 # Download and install the swagger module
-curl https://github.com/SerenaFeng/tornado-swagger/archive/master.zip -L -o /tmp/swagger.zip 
+curl https://github.com/SerenaFeng/tornado-swagger/archive/master.zip -L -o /tmp/swagger.zip
 yum install -y unzip
 rm -fr /tmp/swagger/
 unzip /tmp/swagger.zip -d /tmp/swagger/
 cd /tmp/swagger/tornado-swagger-master
 python setup.py install
 cd ${BASEDIR}
+
+# Python MySQL things
+pip install MySQL-python
+pip install DBUtils
+pip install coverage
 
 

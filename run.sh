@@ -27,9 +27,9 @@ OPTS+=" --msburl=${MSB_ADDRESS}"
 OPTS+=" --localurl=${SDNO_DRIVER_CT_TE_ADDRESS}"
 
 if [ "$CSIT" == "True" ]; then 
-    nohup coverage run --parallel-mode  ${BASEDIR}/ms_controller.py ${OPTS}  &
-    nohup python ${BASEDIR}/test.py ${OPTS}  &
+    nohup coverage run --parallel-mode ${BASEDIR}/ms_controller.py ${OPTS} &
+    nohup python ${BASEDIR}/test.py &
 else
-    nohup python ${BASEDIR}/ms_controller.py ${OPTS}  &
+    nohup python ${BASEDIR}/ms_controller.py ${OPTS} &
 fi
 
