@@ -57,12 +57,11 @@ yum install -y libffi
 yum install -y libffi-devel
 yum install -y openssl-devel
 
-pip install setuptools
 
 ##
 ## Ensure packages are latest version
 ##
-# pip list | awk '{print $1}' | xargs pip install -U
+pip install -U pip
 pip install -U setuptools
 
 ##
@@ -83,12 +82,12 @@ python setup.py install
 ## Others
 ##
 
-pip install epydoc
-pip install tornado
-pip install bottle
-pip install paste
-pip install pygments
-pip install eventfd
+pip install -U epydoc
+pip install -U tornado
+pip install -U bottle
+pip install -U paste
+pip install -U pygments
+pip install -U eventfd
 
 
 # Download and install the swagger module
@@ -101,8 +100,8 @@ python setup.py install
 cd ${BASEDIR}
 
 # Python MySQL things
-pip install MySQL-python
-pip install DBUtils
-pip install coverage
+pip install -U MySQL-python
+pip install -U DBUtils
+pip install -U coverage
 
 
